@@ -19,6 +19,9 @@ Any static file server works the same way. Opening `index.html` directly in a br
 | File | Page |
 | --- | --- |
 | `index.html` | Home |
+| `games.html` | Games |
+| `helicopter.html` | Helicopter |
+| `putt.html` | Mini putt |
 | `about.html` | About |
 | `projects.html` | Projects |
 | `contact.html` | Contact |
@@ -28,6 +31,8 @@ Shared files:
 
 - `assets/css/site.css` — layout, type, light and dark themes
 - `assets/js/site.js` — theme toggle and the small-screen menu
+- `assets/js/helicopter.js` — cave flyer
+- `assets/js/putt.js` — top-view mini putt
 - `assets/fonts/` — self-hosted Fraunces and Source Sans 3 (SIL Open Font License)
 - `CNAME` — custom domain for GitHub Pages
 - `.nojekyll` — tells GitHub Pages to serve the files as-is
@@ -39,7 +44,8 @@ The theme follows the system setting until a visitor chooses light or dark. That
 Copy stays inside what is already public: Wake Forest, North Carolina, the old one-line introduction, Learning Games, and the CRAN packages shinymaterial and shinyglass. Placeholders are marked on the page with a Placeholder label, and in the HTML with `class="slot"`.
 
 - About: replace the biography slot with Eric’s own words.
-- Projects: Learning Games is described, with a comment where a demo or source link should go. Two Shiny slots are empty on purpose.
+- Games: Helicopter and mini putt are playable in the browser. One placeholder on that page is reserved for a future extra.
+- Projects: Learning Games is described, with a comment where a demo or source link should go.
 - Contact: `eric.ray.anderson@gmail.com`, already public on GitHub and CRAN.
 
 ## Publish with GitHub Pages

@@ -3,10 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Page not found · Eric Anderson</title>
-  <meta name="description" content="That page is not on Eric Anderson’s site.">
+  <title>Helicopter · Eric Anderson</title>
+  <meta name="description" content="Play a small helicopter cave flyer on Eric Anderson’s site. Hold to climb, release to drop.">
   <meta name="theme-color" id="theme-color" content="#f4f0e7">
+  <meta property="og:title" content="Helicopter · Eric Anderson">
+  <meta property="og:description" content="A self-hosted helicopter cave flyer.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/fraunces-roman.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/source-sans-3-roman.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/css/site.css">
   <script>
     (function () {
@@ -48,7 +54,7 @@
       </div>
       <nav class="site-nav" id="site-nav" aria-label="Primary">
         <a href="index.html">Home</a>
-        <a href="games.html">Games</a>
+        <a href="games.html" aria-current="page">Games</a>
         <a href="about.html">About</a>
         <a href="projects.html">Projects</a>
         <a href="contact.html">Contact</a>
@@ -56,13 +62,27 @@
     </header>
 
     <main id="content" class="page" tabindex="-1">
-      <header class="page-header narrow">
-        <h1>Page not found</h1>
-        <p class="lede">That address is not part of this site.</p>
-        <p class="hero-links">
-          <a class="arrow-link" href="index.html">Back home</a>
-        </p>
+      <header class="page-header">
+        <h1>Helicopter</h1>
+        <p class="lede">Hold to climb. Release to drop.</p>
       </header>
+      <p class="support play-note">A cave flyer that runs on this site. ericrayanderson.com used to embed a helicopter game; this is a small self-hosted game in that style.</p>
+
+      <div class="stage" id="heli-stage">
+        <canvas id="heli-canvas" width="800" height="500" tabindex="0" aria-label="Helicopter game canvas. Hold to climb through the cave."></canvas>
+        <div class="stage-overlay" id="heli-overlay">
+          <div class="stage-card">
+            <p class="overlay-title" id="heli-overlay-title">Ready</p>
+            <p id="heli-overlay-text">Hold on the game, or hold Space, to climb.</p>
+            <button class="fly-button" id="heli-start" type="button">Fly</button>
+          </div>
+        </div>
+      </div>
+      <p class="scoreboard">
+        <span>Distance <strong id="heli-score">0</strong></span>
+        <span>Best <strong id="heli-best">0</strong></span>
+      </p>
+      <p id="heli-live" class="visually-hidden" aria-live="polite"></p>
     </main>
 
     <footer class="site-footer">
@@ -74,5 +94,6 @@
     </footer>
   </div>
   <script src="assets/js/site.js"></script>
+  <script src="assets/js/helicopter.js"></script>
 </body>
 </html>
