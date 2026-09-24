@@ -351,14 +351,29 @@
     requestAnimationFrame(frame);
   }
 
+  function isControlTarget(event) {
+    var target = event.target;
+    return !!(target && target.closest && target.closest("a, button, input, textarea, select"));
+  }
+
+  function preventPlayGesture(event) {
+    if (isControlTarget(event)) return;
+    if (event.cancelable) event.preventDefault();
+  }
+
   canvas.addEventListener("pointerdown", function (event) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    preventPlayGesture(event);
     if (phase !== "play" || speed() > 20) return;
-    event.preventDefault();
     aiming = true;
     aim = worldPoint(event);
     if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
-  });
+  }, { passive: false });
+
+  stage.addEventListener("touchstart", preventPlayGesture, { passive: false });
+  stage.addEventListener("touchmove", preventPlayGesture, { passive: false });
+  canvas.addEventListener("touchstart", preventPlayGesture, { passive: false });
+  canvas.addEventListener("touchmove", preventPlayGesture, { passive: false });
 
   canvas.addEventListener("pointermove", function (event) {
     if (!aiming) return;

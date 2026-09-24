@@ -277,16 +277,31 @@
     raf = requestAnimationFrame(frame);
   }
 
+  function isControlTarget(event) {
+    var target = event.target;
+    return !!(target && target.closest && target.closest("a, button, input, textarea, select"));
+  }
+
+  function preventPlayGesture(event) {
+    if (isControlTarget(event)) return;
+    if (event.cancelable) event.preventDefault();
+  }
+
   stage.addEventListener("pointerdown", function (event) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    event.preventDefault();
+    preventPlayGesture(event);
     if (canvas.focus) canvas.focus({ preventScroll: true });
     if (state !== "playing") {
       start();
       ignoreClick = true;
     }
     holding = true;
-  });
+  }, { passive: false });
+
+  stage.addEventListener("touchstart", preventPlayGesture, { passive: false });
+  stage.addEventListener("touchmove", preventPlayGesture, { passive: false });
+  canvas.addEventListener("touchstart", preventPlayGesture, { passive: false });
+  canvas.addEventListener("touchmove", preventPlayGesture, { passive: false });
 
   window.addEventListener("pointerup", function () {
     holding = false;
