@@ -79,7 +79,7 @@
     });
 
     window.addEventListener("resize", function () {
-      if (window.matchMedia("(min-width: 761px)").matches) setMenu(false);
+      if (window.matchMedia("(min-width: 861px)").matches) setMenu(false);
     });
   }
 })();

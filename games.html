@@ -3,10 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Page not found · Eric Anderson</title>
-  <meta name="description" content="That page is not on Eric Anderson’s site.">
+  <title>Games · Eric Anderson</title>
+  <meta name="description" content="Two browser games by Eric Anderson: a helicopter cave flyer and a short round of mini putt.">
   <meta name="theme-color" id="theme-color" content="#f4f0e7">
+  <meta property="og:title" content="Games · Eric Anderson">
+  <meta property="og:description" content="Helicopter and mini putt, playable in the browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/fraunces-roman.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/source-sans-3-roman.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/css/site.css">
   <script>
     (function () {
@@ -48,7 +54,7 @@
       </div>
       <nav class="site-nav" id="site-nav" aria-label="Primary">
         <a href="index.html">Home</a>
-        <a href="games.html">Games</a>
+        <a href="games.html" aria-current="page">Games</a>
         <a href="about.html">About</a>
         <a href="projects.html">Projects</a>
         <a href="contact.html">Contact</a>
@@ -57,12 +63,44 @@
 
     <main id="content" class="page" tabindex="-1">
       <header class="page-header narrow">
-        <h1>Page not found</h1>
-        <p class="lede">That address is not part of this site.</p>
-        <p class="hero-links">
-          <a class="arrow-link" href="index.html">Back home</a>
-        </p>
+        <h1>Games</h1>
+        <p class="lede">Two small games that run in the browser.</p>
       </header>
+
+      <div class="narrow">
+        <article class="project" id="helicopter">
+          <p class="project-kicker">
+            <span class="index">01</span>
+            <span>Side view</span>
+          </p>
+          <h2>Helicopter</h2>
+          <p>Fly a cave. Hold to climb, release to drop. The old site embedded a helicopter game; this one is an original canvas game in that style.</p>
+          <ul class="resource-links">
+            <li><a href="helicopter.html">Play</a></li>
+          </ul>
+        </article>
+
+        <article class="project" id="mini-putt">
+          <p class="project-kicker">
+            <span class="index">02</span>
+            <span>Top view</span>
+          </p>
+          <h2>Mini putt</h2>
+          <p>Three holes of miniature golf. Drag from the ball to aim and set power, then release to putt.</p>
+          <ul class="resource-links">
+            <li><a href="putt.html">Play</a></li>
+          </ul>
+        </article>
+
+        <section class="subsection" aria-labelledby="future-extra">
+          <h2 id="future-extra">Something else</h2>
+          <article class="slot" id="future-extra-slot">
+            <p class="slot-label">Placeholder</p>
+            <h3>Future extra</h3>
+            <p>Open slot for one more thing. Replace this when there is something to show.</p>
+          </article>
+        </section>
+      </div>
     </main>
 
     <footer class="site-footer">
