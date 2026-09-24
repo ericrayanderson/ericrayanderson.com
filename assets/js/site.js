@@ -112,19 +112,48 @@
   var gameCatalog = {
     helicopter: {
       title: "Helicopter",
-      embed: "https://www.addictinggames.com/embed/html5-games/16834",
-      fallback: "helicopter.html?embed=1",
-      external: "https://www.addictinggames.com/embed/html5-games/16834",
-      externalLabel: "Open hosted game",
-      note: "Hosted helicopter game. Switch to the on-site version if this frame stays blank."
+      script: "assets/js/helicopter.js",
+      key: "helicopter",
+      html:
+        "<div class=\"stage\" id=\"heli-stage\">" +
+          "<canvas id=\"heli-canvas\" width=\"800\" height=\"500\" tabindex=\"0\" aria-label=\"Helicopter game canvas. Hold to climb through the cave.\"></canvas>" +
+          "<div class=\"stage-overlay\" id=\"heli-overlay\">" +
+            "<div class=\"stage-card\">" +
+              "<p class=\"overlay-title\" id=\"heli-overlay-title\">Ready</p>" +
+              "<p id=\"heli-overlay-text\">Hold on the game, or hold Space, to climb.</p>" +
+              "<button class=\"fly-button\" id=\"heli-start\" type=\"button\">Fly</button>" +
+            "</div>" +
+          "</div>" +
+        "</div>" +
+        "<p class=\"scoreboard\">" +
+          "<span>Distance <strong id=\"heli-score\">0</strong></span>" +
+          "<span>Best <strong id=\"heli-best\">0</strong></span>" +
+        "</p>" +
+        "<p id=\"heli-live\" class=\"visually-hidden\" aria-live=\"polite\"></p>"
     },
     putt: {
       title: "Mini putt",
-      embed: "https://cdn2.addictinggames.com/addictinggames-content/ag-assets/content-items/html5-games/miniputt/index.html",
-      fallback: "putt.html?embed=1",
-      external: "https://www.addictinggames.com/sports/mini-putt",
-      externalLabel: "Sports page",
-      note: "The mini putt sports page blocks embedding, so this frame loads Addicting Games’ hosted game. The on-site version is the fallback."
+      script: "assets/js/putt.js",
+      key: "putt",
+      html:
+        "<div class=\"stage\" id=\"putt-stage\">" +
+          "<canvas id=\"putt-canvas\" width=\"800\" height=\"480\" tabindex=\"0\" aria-label=\"Mini putt green. Drag from the ball to aim and release to putt.\"></canvas>" +
+          "<div class=\"stage-overlay\" id=\"putt-overlay\" hidden>" +
+            "<div class=\"stage-card\">" +
+              "<p class=\"overlay-title\" id=\"putt-overlay-title\">In the hole</p>" +
+              "<p id=\"putt-overlay-text\"></p>" +
+              "<button class=\"fly-button\" id=\"putt-next\" type=\"button\">Next hole</button>" +
+            "</div>" +
+          "</div>" +
+        "</div>" +
+        "<p class=\"scoreboard\">" +
+          "<span>Hole <strong id=\"putt-hole\">1</strong> of 3</span>" +
+          "<span id=\"putt-name\">Warm-up</span>" +
+          "<span>Par <strong id=\"putt-par\">2</strong></span>" +
+          "<span>This hole <strong id=\"putt-strokes\">0</strong></span>" +
+          "<span>Round <strong id=\"putt-total\">0</strong></span>" +
+        "</p>" +
+        "<p id=\"putt-live\" class=\"visually-hidden\" aria-live=\"polite\"></p>"
     }
   };
 
@@ -138,57 +167,87 @@
         "<h2 id=\"game-modal-title\"></h2>" +
         "<button type=\"button\" class=\"game-modal-close\" data-close-game>Close</button>" +
       "</div>" +
-      "<div class=\"game-frame\"><iframe title=\"Game\" referrerpolicy=\"strict-origin-when-cross-origin\" allow=\"fullscreen; gamepad\"></iframe></div>" +
-      "<p class=\"game-modal-note\" id=\"game-modal-note\"></p>" +
-      "<div class=\"game-modal-actions\">" +
-        "<button type=\"button\" class=\"fly-button\" id=\"game-source-toggle\">On-site version</button>" +
-        "<a id=\"game-external\" href=\"#\" target=\"_blank\" rel=\"noreferrer\">Open hosted game</a>" +
-      "</div>" +
+      "<div class=\"game-modal-play\" id=\"game-modal-play\"></div>" +
     "</div>";
   document.body.appendChild(gameModal);
 
-  var gameFrame = gameModal.querySelector("iframe");
   var gameTitle = document.getElementById("game-modal-title");
-  var gameNote = document.getElementById("game-modal-note");
-  var gameToggle = document.getElementById("game-source-toggle");
-  var gameExternal = document.getElementById("game-external");
+  var gamePlay = document.getElementById("game-modal-play");
   var gameShell = document.querySelector(".shell");
-  var activeGame = null;
-  var showingFallback = false;
   var gameOpener = null;
+  var openToken = 0;
+  var scriptLoads = {};
 
-  function setGameSource(useFallback) {
-    if (!activeGame) return;
-    showingFallback = useFallback;
-    gameFrame.src = useFallback ? activeGame.fallback : activeGame.embed;
-    gameFrame.title = activeGame.title + (useFallback ? " on this site" : " hosted game");
-    gameToggle.textContent = useFallback ? "Hosted game" : "On-site version";
+  function stopGames() {
+    var games = window.SiteGames || {};
+    if (games.helicopter && games.helicopter.stop) games.helicopter.stop();
+    if (games.putt && games.putt.stop) games.putt.stop();
+  }
+
+  function loadGameScript(src) {
+    if (scriptLoads[src]) return scriptLoads[src];
+    scriptLoads[src] = new Promise(function (resolve, reject) {
+      var script = document.createElement("script");
+      script.src = src;
+      script.onload = function () { resolve(); };
+      script.onerror = function () { reject(); };
+      document.body.appendChild(script);
+    });
+    return scriptLoads[src];
+  }
+
+  function ensureGame(game) {
+    var api = window.SiteGames && window.SiteGames[game.key];
+    if (api && api.mount) return Promise.resolve(api);
+    return loadGameScript(game.script).then(function () {
+      return window.SiteGames && window.SiteGames[game.key];
+    });
+  }
+
+  function showGameError() {
+    gamePlay.innerHTML = "<p class=\"game-modal-note\">The game did not load.</p>";
   }
 
   function openGame(id, opener) {
     var game = gameCatalog[id];
     if (!game) return;
-    activeGame = game;
+    var token = ++openToken;
     gameOpener = opener || null;
+    stopGames();
+    gamePlay.innerHTML = "";
     gameTitle.textContent = game.title;
-    gameNote.textContent = game.note;
-    gameExternal.href = game.external;
-    gameExternal.textContent = game.externalLabel;
-    setGameSource(false);
     gameModal.hidden = false;
     document.body.classList.add("modal-open");
     try {
       if (gameShell) gameShell.inert = true;
     } catch (error) {}
-    var closeButton = gameModal.querySelector(".game-modal-close");
-    if (closeButton) closeButton.focus();
+
+    ensureGame(game).then(function (api) {
+      if (token !== openToken || gameModal.hidden) return;
+      if (!api || !api.mount) {
+        showGameError();
+        return;
+      }
+      gamePlay.innerHTML = game.html;
+      if (token !== openToken || gameModal.hidden) {
+        gamePlay.innerHTML = "";
+        return;
+      }
+      api.mount(gamePlay);
+      var canvas = gamePlay.querySelector("canvas");
+      if (canvas && canvas.focus) canvas.focus({ preventScroll: true });
+    }).catch(function () {
+      if (token !== openToken || gameModal.hidden) return;
+      showGameError();
+    });
   }
 
   function closeGame() {
     if (gameModal.hidden) return;
+    openToken += 1;
+    stopGames();
+    gamePlay.innerHTML = "";
     gameModal.hidden = true;
-    gameFrame.src = "about:blank";
-    activeGame = null;
     document.body.classList.remove("modal-open");
     try {
       if (gameShell) gameShell.inert = false;
@@ -206,10 +265,6 @@
       return;
     }
     if (event.target.closest("[data-close-game]")) closeGame();
-  });
-
-  gameToggle.addEventListener("click", function () {
-    setGameSource(!showingFallback);
   });
 
   document.addEventListener("keydown", function (event) {

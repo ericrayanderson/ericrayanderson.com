@@ -30,7 +30,7 @@ Any static file server works the same way. Opening `index.html` directly in a br
 Shared files:
 
 - `assets/css/site.css` — layout, type, light and dark themes
-- `assets/js/site.js` — theme toggle, header clock, small-screen menu, and the game panel
+- `assets/js/site.js` — theme toggle, header clock, small-screen menu, and the game dialog
 - `assets/js/helicopter.js` — cave flyer
 - `assets/js/putt.js` — top-view mini putt
 - `assets/fonts/` — self-hosted Fraunces and Source Sans 3 (SIL Open Font License)
@@ -41,7 +41,7 @@ The theme follows the system setting until a visitor chooses light or dark. That
 
 The header shows the local date and time, including seconds.
 
-From Home and Games, Helicopter and Mini putt open in a panel. Helicopter uses the Addicting Games embed (`/embed/html5-games/16834`). The mini putt sports page sends `frame-ancestors: none`, so that panel loads Addicting Games’ hosted game file instead of the sports URL. Each panel can switch to the on-site canvas version. `helicopter.html` and `putt.html` still open the canvas games on their own.
+From Home and Games, Helicopter and Mini putt open in a dialog on the page. Closing it, with the button or Escape, stops that game. `helicopter.html` and `putt.html` still run the same games on their own, including when the link is opened in a new tab.
 
 ## What to edit
 
