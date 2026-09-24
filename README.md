@@ -41,7 +41,7 @@ The theme follows the system setting until a visitor chooses light or dark. That
 
 The header shows the local date and time, including seconds.
 
-From Home and Games, Helicopter and Mini putt open in a dialog on the page. Closing it, with the button or Escape, stops that game. Helicopter is the on-site canvas game. Mini putt loads Addicting Games’ hosted game, because the sports page sends `frame-ancestors: none`. The dialog can switch to the on-site mini putt and links to the sports page. `helicopter.html` and `putt.html` still run the on-site games on their own, including when the link is opened in a new tab.
+From Home and Games, Helicopter and Mini putt open in a dialog on the page. Both are the on-site canvas games. Closing the dialog, with the button or Escape, stops that game. `helicopter.html` and `putt.html` still run the same games on their own, including when the link is opened in a new tab.
 
 ## What to edit
 

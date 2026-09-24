@@ -133,9 +133,6 @@
     },
     putt: {
       title: "Mini putt",
-      embed: "https://cdn2.addictinggames.com/addictinggames-content/ag-assets/content-items/html5-games/miniputt/index.html",
-      external: "https://www.addictinggames.com/sports/mini-putt",
-      note: "The sports page blocks embedding, so this frame loads Addicting Games’ hosted mini putt. Switch to the on-site version if the frame stays blank.",
       script: "assets/js/putt.js",
       key: "putt",
       html:
@@ -170,28 +167,15 @@
         "<h2 id=\"game-modal-title\"></h2>" +
         "<button type=\"button\" class=\"game-modal-close\" data-close-game>Close</button>" +
       "</div>" +
-      "<div class=\"game-frame\" id=\"game-modal-frame\" hidden><iframe title=\"Game\" referrerpolicy=\"strict-origin-when-cross-origin\" allow=\"fullscreen; gamepad\"></iframe></div>" +
       "<div class=\"game-modal-play\" id=\"game-modal-play\"></div>" +
-      "<p class=\"game-modal-note\" id=\"game-modal-note\" hidden></p>" +
-      "<div class=\"game-modal-actions\" id=\"game-modal-actions\" hidden>" +
-        "<button type=\"button\" class=\"fly-button\" id=\"game-source-toggle\">On-site version</button>" +
-        "<a id=\"game-external\" href=\"https://www.addictinggames.com/sports/mini-putt\" target=\"_blank\" rel=\"noreferrer\">Addicting Games</a>" +
-      "</div>" +
     "</div>";
   document.body.appendChild(gameModal);
 
   var gameTitle = document.getElementById("game-modal-title");
   var gamePlay = document.getElementById("game-modal-play");
-  var gameFrame = document.getElementById("game-modal-frame");
-  var gameIframe = gameFrame.querySelector("iframe");
-  var gameNote = document.getElementById("game-modal-note");
-  var gameActions = document.getElementById("game-modal-actions");
-  var gameToggle = document.getElementById("game-source-toggle");
-  var gameExternal = document.getElementById("game-external");
   var gameShell = document.querySelector(".shell");
   var gameOpener = null;
   var activeGame = null;
-  var showingEmbed = false;
   var openToken = 0;
   var scriptLoads = {};
 
@@ -226,46 +210,15 @@
     gamePlay.innerHTML = "<p class=\"game-modal-note\">The game did not load.</p>";
   }
 
-  function showExtras(game, hosted) {
-    if (!game.embed) {
-      gameNote.hidden = true;
-      gameActions.hidden = true;
-      return;
-    }
-    gameNote.hidden = false;
-    gameActions.hidden = false;
-    gameNote.textContent = game.note;
-    gameExternal.href = game.external;
-    gameToggle.textContent = hosted ? "On-site version" : "Hosted game";
-  }
-
-  function showEmbed(game) {
-    showingEmbed = true;
-    stopGames();
-    gamePlay.innerHTML = "";
-    gamePlay.hidden = true;
-    gameFrame.hidden = false;
-    gameIframe.title = game.title;
-    gameIframe.src = game.embed;
-    showExtras(game, true);
-    var closeButton = gameModal.querySelector(".game-modal-close");
-    if (closeButton) closeButton.focus();
-  }
-
   function showCanvas(game, token) {
-    showingEmbed = false;
-    gameFrame.hidden = true;
-    gameIframe.src = "about:blank";
-    gamePlay.hidden = false;
-    showExtras(game, false);
     ensureGame(game).then(function (api) {
-      if (token !== openToken || gameModal.hidden || showingEmbed || activeGame !== game) return;
+      if (token !== openToken || gameModal.hidden || activeGame !== game) return;
       if (!api || !api.mount) {
         showGameError();
         return;
       }
       gamePlay.innerHTML = game.html;
-      if (token !== openToken || gameModal.hidden || showingEmbed) {
+      if (token !== openToken || gameModal.hidden || activeGame !== game) {
         gamePlay.innerHTML = "";
         return;
       }
@@ -286,29 +239,21 @@
     activeGame = game;
     stopGames();
     gamePlay.innerHTML = "";
-    gameIframe.src = "about:blank";
     gameTitle.textContent = game.title;
     gameModal.hidden = false;
     document.body.classList.add("modal-open");
     try {
       if (gameShell) gameShell.inert = true;
     } catch (error) {}
-    if (game.embed) showEmbed(game);
-    else showCanvas(game, token);
+    showCanvas(game, token);
   }
 
   function closeGame() {
     if (gameModal.hidden) return;
     openToken += 1;
     activeGame = null;
-    showingEmbed = false;
     stopGames();
     gamePlay.innerHTML = "";
-    gamePlay.hidden = false;
-    gameFrame.hidden = true;
-    gameIframe.src = "about:blank";
-    gameNote.hidden = true;
-    gameActions.hidden = true;
     gameModal.hidden = true;
     document.body.classList.remove("modal-open");
     try {
@@ -327,23 +272,6 @@
       return;
     }
     if (event.target.closest("[data-close-game]")) closeGame();
-  });
-
-  gameToggle.addEventListener("click", function () {
-    if (!activeGame) return;
-    if (showingEmbed) showCanvas(activeGame, openToken);
-    else if (activeGame.embed) showEmbed(activeGame);
-  });
-
-  // The hosted game is a cross-origin frame, so Escape would stay inside it.
-  window.addEventListener("blur", function () {
-    if (gameModal.hidden || !showingEmbed) return;
-    window.setTimeout(function () {
-      if (gameModal.hidden || !showingEmbed) return;
-      if (document.activeElement !== gameIframe) return;
-      var closeButton = gameModal.querySelector(".game-modal-close");
-      if (closeButton && closeButton.focus) closeButton.focus({ preventScroll: true });
-    }, 0);
   });
 
   document.addEventListener("keydown", function (event) {
