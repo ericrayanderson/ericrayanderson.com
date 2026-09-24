@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="assets/css/site.css">
   <script>
     (function () {
+      if (/[?&]embed=1(?:&|$)/.test(location.search)) document.documentElement.classList.add("is-embed");
       var theme = "light";
       try {
         var stored = localStorage.getItem("theme");
@@ -59,6 +60,7 @@
         <a href="projects.html">Projects</a>
         <a href="contact.html">Contact</a>
       </nav>
+          <p class="site-clock-wrap"><time class="site-clock" id="site-clock" datetime=""></time></p>
     </header>
 
     <main id="content" tabindex="-1">
@@ -87,7 +89,7 @@
         </div>
         <ol class="work-list">
           <li>
-            <a class="work-row" href="helicopter.html">
+            <a class="work-row" href="helicopter.html" data-game="helicopter">
               <span class="work-index">01</span>
               <span>
                 <span class="work-title">Helicopter</span>
@@ -97,7 +99,7 @@
             </a>
           </li>
           <li>
-            <a class="work-row" href="putt.html">
+            <a class="work-row" href="putt.html" data-game="putt">
               <span class="work-index">02</span>
               <span>
                 <span class="work-title">Mini putt</span>

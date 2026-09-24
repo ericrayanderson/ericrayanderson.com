@@ -277,6 +277,15 @@
     raf = requestAnimationFrame(frame);
   }
 
+  function blockTouch(event) {
+    event.preventDefault();
+  }
+
+  stage.addEventListener("touchstart", blockTouch, { passive: false });
+  stage.addEventListener("touchmove", blockTouch, { passive: false });
+  canvas.addEventListener("touchstart", blockTouch, { passive: false });
+  canvas.addEventListener("touchmove", blockTouch, { passive: false });
+
   stage.addEventListener("pointerdown", function (event) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
     event.preventDefault();
