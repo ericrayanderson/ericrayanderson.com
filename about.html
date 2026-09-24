@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About · Eric Anderson</title>
+  <meta name="description" content="About Eric Anderson in Wake Forest, North Carolina. Public notes only: the earlier personal page, Learning Games, and Shiny packages.">
+  <meta name="theme-color" id="theme-color" content="#f4f0e7">
+  <meta property="og:title" content="About · Eric Anderson">
+  <meta property="og:description" content="About Eric Anderson in Wake Forest, North Carolina.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/fraunces-roman.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/source-sans-3-roman.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script>
+    (function () {
+      var theme = "light";
+      try {
+        var stored = localStorage.getItem("theme");
+        if (stored === "light" || stored === "dark") theme = stored;
+        else if (window.matchMedia("(prefers-color-scheme: dark)").matches) theme = "dark";
+      } catch (error) {}
+      document.documentElement.setAttribute("data-theme", theme);
+      var meta = document.getElementById("theme-color");
+      if (meta) meta.setAttribute("content", theme === "dark" ? "#12110f" : "#f4f0e7");
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <div class="shell">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Eric Anderson, home">
+        <span class="brand-mark" aria-hidden="true">EA</span>
+        <span class="brand-name">Eric Anderson</span>
+      </a>
+      <div class="header-tools">
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark theme">
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M14.4 3.4a8.3 8.3 0 1 0 6.2 12.5A7.1 7.1 0 0 1 14.4 3.4z"/>
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.4" fill="currentColor"/>
+            <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+              <path d="M12 3.2v2.2M12 18.6v2.2M3.2 12h2.2M18.6 12h2.2M5.8 5.8l1.6 1.6M16.6 16.6l1.6 1.6M18.2 5.8l-1.6 1.6M7.4 16.6l-1.6 1.6"/>
+            </g>
+          </svg>
+        </button>
+        <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+          <span class="nav-toggle-label">Menu</span>
+        </button>
+      </div>
+      <nav class="site-nav" id="site-nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="about.html" aria-current="page">About</a>
+        <a href="projects.html">Projects</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <main id="content" class="page" tabindex="-1">
+      <header class="page-header narrow">
+        <h1>About</h1>
+        <p class="lede">Wake Forest, North Carolina.</p>
+      </header>
+
+      <div class="prose narrow">
+        <p>Eric Anderson’s earlier public page introduced the site in one line, and linked onward to a project for kids.</p>
+        <figure class="quote">
+          <blockquote>
+            <p>A personal site with projects and tools.</p>
+          </blockquote>
+          <figcaption>
+            <a href="https://ericrayanderson.github.io/">ericrayanderson.github.io</a>
+          </figcaption>
+        </figure>
+        <p>That page points to <a href="projects.html#learning-games">Learning Games</a>: spelling, counting, and more for kids. Public R work sits beside it. <a href="projects.html#shinymaterial">shinymaterial</a> brings Material Design components to Shiny. <a href="projects.html#shinyglass">shinyglass</a> brings liquid-glass themes to Shiny, including light and dark presets. Both packages are on CRAN.</p>
+
+        <dl class="facts">
+          <div>
+            <dt>Location</dt>
+            <dd>Wake Forest, North Carolina</dd>
+          </div>
+          <div>
+            <dt>GitHub</dt>
+            <dd><a rel="me" href="https://github.com/ericrayanderson">github.com/ericrayanderson</a></dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd><a href="mailto:eric.ray.anderson@gmail.com">eric.ray.anderson@gmail.com</a></dd>
+          </div>
+        </dl>
+
+        <!-- Replace the biography slot with Eric’s own words. Do not fill in employers, education, or other claims from outside sources. -->
+        <section class="slot bio-slot" aria-labelledby="biography">
+          <p class="slot-label">Placeholder</p>
+          <h2 id="biography">Biography</h2>
+          <p>Replace this with a short biography. Background and anything beyond the public projects above are left blank on purpose.</p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>Eric Anderson · Wake Forest, NC</p>
+      <p class="footer-links">
+        <a href="mailto:eric.ray.anderson@gmail.com">eric.ray.anderson@gmail.com</a>
+        <a rel="me" href="https://github.com/ericrayanderson">GitHub</a>
+      </p>
+    </footer>
+  </div>
+  <script src="assets/js/site.js"></script>
+</body>
+</html>
