@@ -880,6 +880,16 @@ main:focus {
   display: flex;
 }
 
+/* Helicopter ready and crash prompts sit in the middle of the canvas. */
+#heli-overlay {
+  align-items: center;
+  justify-content: center;
+}
+
+#heli-overlay .stage-card {
+  text-align: center;
+}
+
 .stage-card {
   pointer-events: auto;
   max-width: 22rem;
