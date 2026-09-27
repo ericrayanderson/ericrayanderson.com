@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>About · Eric Anderson</title>
-  <meta name="description" content="About Eric Anderson in Wake Forest, North Carolina. Public notes only: the earlier personal page, Learning Games, and Shiny packages.">
+  <title>Dirt Trail · Eric Anderson</title>
+  <meta name="description" content="Play Dirt Trail, a side-view dirt bike game. Gas, brake, and lean across three short courses.">
   <meta name="theme-color" id="theme-color" content="#f4f0e7">
-  <meta property="og:title" content="About · Eric Anderson">
-  <meta property="og:description" content="About Eric Anderson in Wake Forest, North Carolina.">
+  <meta property="og:title" content="Dirt Trail · Eric Anderson">
+  <meta property="og:description" content="A self-hosted side-view dirt bike game with three short trails.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_US">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -54,54 +54,43 @@
       </div>
       <nav class="site-nav" id="site-nav" aria-label="Primary">
         <a href="index.html">Home</a>
-        <a href="games.html">Games</a>
-        <a href="about.html" aria-current="page">About</a>
+        <a href="games.html" aria-current="page">Games</a>
+        <a href="about.html">About</a>
         <a href="projects.html">Projects</a>
         <a href="contact.html">Contact</a>
       </nav>
     </header>
 
     <main id="content" class="page" tabindex="-1">
-      <header class="page-header narrow">
-        <h1>About</h1>
-        <p class="lede">Wake Forest, North Carolina.</p>
+      <header class="page-header">
+        <h1>Dirt Trail</h1>
+        <p class="lede">Gas, brake, and lean. Land on both wheels.</p>
       </header>
+      <p class="support play-note">Three short courses, side view. Arrows or WASD: right is gas, left brakes, up leans back, down leans forward. On a phone, hold the buttons under the course. Tip too far and the run ends.</p>
 
-      <div class="prose narrow">
-        <p>Eric Anderson’s earlier public page introduced the site in one line, and linked onward to a project for kids.</p>
-        <figure class="quote">
-          <blockquote>
-            <p>A personal site with projects and tools.</p>
-          </blockquote>
-          <figcaption>
-            <a href="https://ericrayanderson.github.io/">ericrayanderson.github.io</a>
-          </figcaption>
-        </figure>
-        <p>That page points to <a href="projects.html#learning-games">Learning Games</a>: spelling, counting, and more for kids. Public R work sits beside it. <a href="projects.html#shinymaterial">shinymaterial</a> brings Material Design components to Shiny. <a href="projects.html#shinyglass">shinyglass</a> brings liquid-glass themes to Shiny, including light and dark presets. Both packages are on CRAN.</p>
-        <p>ericrayanderson.com used to embed a helicopter game. This site has an original cave flyer, a short round of mini putt, and Dirt Trail, a side-view bike game, on the <a href="games.html">Games</a> page.</p>
-
-        <dl class="facts">
-          <div>
-            <dt>Location</dt>
-            <dd>Wake Forest, North Carolina</dd>
+      <div class="stage" id="dirt-stage">
+        <canvas id="dirt-canvas" width="800" height="500" tabindex="0" aria-label="Dirt Trail. Side-view dirt bike. Accelerate, brake, and lean across the course."></canvas>
+        <div class="stage-overlay is-centered" id="dirt-overlay">
+          <div class="stage-card">
+            <p class="overlay-title" id="dirt-overlay-title">Ready</p>
+            <p id="dirt-overlay-text">Three trails. Gas on the climbs, and lean so both wheels meet the ground.</p>
+            <button class="fly-button" id="dirt-action" type="button">Ride</button>
           </div>
-          <div>
-            <dt>GitHub</dt>
-            <dd><a rel="me" href="https://github.com/ericrayanderson">github.com/ericrayanderson</a></dd>
-          </div>
-          <div>
-            <dt>Email</dt>
-            <dd><a href="mailto:eric.ray.anderson@gmail.com">eric.ray.anderson@gmail.com</a></dd>
-          </div>
-        </dl>
-
-        <!-- Replace the biography slot with Eric’s own words. Do not fill in employers, education, or other claims from outside sources. -->
-        <section class="slot bio-slot" aria-labelledby="biography">
-          <p class="slot-label">Placeholder</p>
-          <h2 id="biography">Biography</h2>
-          <p>Replace this with a short biography. Background and anything beyond the public projects above are left blank on purpose.</p>
-        </section>
+        </div>
       </div>
+      <p class="scoreboard">
+        <span>Trail <strong id="dirt-trail">1</strong> of 3</span>
+        <span id="dirt-name">Pasture</span>
+        <span>Time <strong id="dirt-time">0:00.00</strong></span>
+        <span>Best <strong id="dirt-best">—</strong></span>
+      </p>
+      <div class="ride-pad" id="ride-pad" role="group" aria-label="Riding controls">
+        <button class="ride-key" type="button" data-act="back" aria-pressed="false" aria-label="Lean back">Back</button>
+        <button class="ride-key" type="button" data-act="gas" aria-pressed="false" aria-label="Accelerate">Gas</button>
+        <button class="ride-key" type="button" data-act="fwd" aria-pressed="false" aria-label="Lean forward">Forward</button>
+        <button class="ride-key" type="button" data-act="brake" aria-pressed="false" aria-label="Brake">Brake</button>
+      </div>
+      <p id="dirt-live" class="visually-hidden" aria-live="polite"></p>
     </main>
 
     <footer class="site-footer">
@@ -113,5 +102,6 @@
     </footer>
   </div>
   <script src="assets/js/site.js"></script>
+  <script src="assets/js/dirtbike.js"></script>
 </body>
 </html>
