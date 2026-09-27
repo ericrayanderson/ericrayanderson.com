@@ -960,3 +960,52 @@ main:focus {
   white-space: nowrap;
   border: 0;
 }
+
+.stage-overlay.is-centered {
+  align-items: center;
+  justify-content: center;
+}
+
+.stage-overlay.is-centered .stage-card {
+  text-align: center;
+  max-width: 24rem;
+}
+
+.ride-pad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  width: min(100%, 50rem);
+  margin-top: 0.85rem;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ride-key {
+  appearance: none;
+  min-height: 2.85rem;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-raised);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ride-key.is-held {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.ride-key:hover {
+  border-color: var(--accent);
+}
