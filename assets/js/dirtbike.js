@@ -313,9 +313,11 @@
     var dwy = lx * c - ly * s;
     var dAbove = dwx * g.nx + dwy * g.ny;
     if (Math.abs(dAbove) > 8) {
+      var leaning = held("back") || held("fwd");
+      var cap = leaning ? 0.016 : 0.045;
       var dAng = (pen * 0.42) / dAbove;
-      if (dAng > 0.045) dAng = 0.045;
-      if (dAng < -0.045) dAng = -0.045;
+      if (dAng > cap) dAng = cap;
+      if (dAng < -cap) dAng = -cap;
       bike.angle += dAng;
     }
   }
@@ -557,7 +559,7 @@
         crash("That landing was too steep.");
         return;
       }
-      if (rel > 1.18) {
+      if (rel > 1.05) {
         crash("The bike tipped over.");
         return;
       }
@@ -566,15 +568,15 @@
     }
 
     var lean = (fwd ? 1 : 0) - (back ? 1 : 0);
-    bike.angVel += lean * (grounded ? 4.2 : 6.4) * dt;
+    bike.angVel += lean * (grounded ? 7.2 : 6.4) * dt;
     if (gas && rearG && lean === 0) bike.angVel -= 0.85 * dt;
     if (brake && grounded && lean === 0) bike.angVel += 1.15 * dt;
 
     if (grounded && gnd) {
       var diff = wrap(gnd.slope - bike.angle);
-      var gain = lean === 0 ? 15 : 3.2;
+      var gain = lean === 0 ? 15 : 0.8;
       bike.angVel += diff * gain * dt;
-      bike.angVel *= Math.exp((lean === 0 ? -6.5 : -2.2) * dt);
+      bike.angVel *= Math.exp((lean === 0 ? -6.5 : -1.4) * dt);
     } else {
       bike.angVel *= Math.exp(-0.22 * dt);
     }
