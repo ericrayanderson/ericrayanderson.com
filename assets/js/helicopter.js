@@ -54,10 +54,11 @@
   }
 
   function shapeAt(worldX) {
-    if (worldX < 0) return { top: 70, bottom: H - 70 };
+    var scale = H / 500;
+    if (worldX < 0) return { top: 70 * scale, bottom: H - 70 * scale };
     var intro = Math.max(0, Math.min(1, (worldX - 320) / 640));
-    var gap = Math.max(156, 300 - intro * Math.min(140, Math.max(0, worldX - 320) * 0.02));
-    var amp = intro * Math.min(120, worldX * 0.03);
+    var gap = Math.max(156, 300 - intro * Math.min(140, Math.max(0, worldX - 320) * 0.02)) * scale;
+    var amp = intro * Math.min(120, worldX * 0.03) * scale;
     var wave = Math.sin(worldX * 0.0072) * amp + Math.sin(worldX * 0.018 + 1.1) * amp * 0.38;
     var mid = H * 0.48 + wave;
     var limit = gap * 0.5 + 22;
@@ -67,22 +68,22 @@
   }
 
   function resize() {
-    var parent = stage.parentElement;
-    var avail = parent ? parent.clientWidth : 800;
-    var width = Math.min(avail, 800);
-    var height = Math.round(width * (H / W));
-    var maxH = Math.max(220, Math.min(window.innerHeight * 0.62, 520));
-    if (height > maxH) {
-      height = Math.round(maxH);
-      width = Math.round(height * (W / H));
-    }
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
-    stage.style.width = width + "px";
-    canvas.width = Math.max(1, Math.round(width * dpr));
-    canvas.height = Math.max(1, Math.round(height * dpr));
+    var cssW = stage.clientWidth;
+    var cssH = stage.clientHeight;
+    if (cssW < 2 || cssH < 2) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    W = 800;
+    H = W * (cssH / cssW);
+    canvas.width = Math.max(1, Math.round(cssW * dpr));
+    canvas.height = Math.max(1, Math.round(cssH * dpr));
     ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+    if (state !== "playing") {
+      heli.y = H * 0.46;
+    } else {
+      var cave = shapeAt(cam + heli.x);
+      if (heli.y < cave.top + 18) heli.y = cave.top + 18;
+      if (heli.y > cave.bottom - 18) heli.y = cave.bottom - 18;
+    }
   }
 
   function reset() {
@@ -346,7 +347,12 @@
     if (document.hidden) persistBest();
   });
 
+  stage.addEventListener("contextmenu", function (event) {
+    event.preventDefault();
+  });
+
   window.addEventListener("resize", resize);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", resize);
   if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
 
   updateScore();

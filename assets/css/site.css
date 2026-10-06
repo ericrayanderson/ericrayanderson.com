@@ -594,6 +594,12 @@ main:focus {
   font-weight: 600;
 }
 
+.resource-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
 .subsection {
   margin-top: 3.25rem;
 }
@@ -871,7 +877,9 @@ main:focus {
 .stage-overlay {
   position: absolute;
   inset: 0;
-  align-items: flex-end;
+  z-index: 2;
+  align-items: center;
+  justify-content: center;
   padding: 0.9rem;
   pointer-events: none;
 }
@@ -880,22 +888,14 @@ main:focus {
   display: flex;
 }
 
-/* Helicopter ready and crash prompts sit in the middle of the canvas. */
-#heli-overlay {
-  align-items: center;
-  justify-content: center;
-}
-
-#heli-overlay .stage-card {
-  text-align: center;
-}
-
 .stage-card {
   pointer-events: auto;
   max-width: 22rem;
   padding: 0.9rem 1rem 1rem;
   background: var(--bg-raised);
   border: 1px solid var(--line);
+  text-align: center;
+  touch-action: manipulation;
 }
 
 .overlay-title {
@@ -921,9 +921,13 @@ main:focus {
   font: inherit;
   font-weight: 600;
   border-radius: 999px;
-  min-height: 2.5rem;
-  padding: 0.4rem 1.05rem;
+  min-height: 3rem;
+  min-width: 7.5rem;
+  padding: 0.55rem 1.35rem;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .fly-button:hover {
@@ -974,30 +978,41 @@ main:focus {
 .ride-pad {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.45rem;
-  width: min(100%, 50rem);
-  margin-top: 0.85rem;
+  grid-template-areas:
+    "back gas"
+    "fwd brake";
+  gap: 0.65rem;
+  width: 100%;
+  margin-top: 0.65rem;
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
+
+.ride-key[data-act="back"] { grid-area: back; }
+.ride-key[data-act="gas"] { grid-area: gas; }
+.ride-key[data-act="fwd"] { grid-area: fwd; }
+.ride-key[data-act="brake"] { grid-area: brake; }
 
 .ride-key {
   appearance: none;
-  min-height: 2.85rem;
+  min-height: 4.5rem;
   border: 1px solid var(--line-strong);
   background: var(--bg-raised);
   color: var(--ink);
   font: inherit;
+  font-size: 1.05rem;
   font-weight: 600;
-  border-radius: 999px;
+  border-radius: 1rem;
   cursor: pointer;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .ride-key.is-held {
@@ -1068,4 +1083,216 @@ main:focus {
     border: 1px solid var(--line);
     border-radius: 2px;
   }
+}
+
+/* Play pages are a phone in portrait first. Desktop gets a framed stage below. */
+html:has(body.play) {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body.play {
+  min-height: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body.play .shell {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+body.play .site-header {
+  padding-top: env(safe-area-inset-top);
+  padding-left: 0.85rem;
+  padding-right: 0.85rem;
+}
+
+body.play .page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0.7rem 0.85rem calc(0.65rem + env(safe-area-inset-bottom));
+}
+
+body.play .page-header h1 {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+body.play .page-header .lede {
+  margin-top: 0.3rem;
+  font-size: 1.02rem;
+  line-height: 1.35;
+}
+
+body.play .play-note,
+body.play .site-footer {
+  display: none;
+}
+
+body.play .scoreboard {
+  margin-top: 0.4rem;
+  gap: 0.25rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+body.play .stage {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  margin-top: 0.55rem;
+}
+
+body.play .stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.rotate-hint {
+  display: none;
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  body.play-dirt .rotate-hint {
+    display: block;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  body.play .site-header {
+    min-height: 2.75rem;
+  }
+
+  body.play .page-header {
+    display: none;
+  }
+
+  body.play .page {
+    padding-top: 0.35rem;
+    padding-bottom: calc(0.4rem + env(safe-area-inset-bottom));
+  }
+
+  body.play .scoreboard,
+  body.play .stage {
+    margin-top: 0.3rem;
+  }
+
+  body.play-dirt .ride-pad {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-areas: "back fwd brake gas";
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+  }
+
+  body.play-dirt .ride-key {
+    min-height: 3.25rem;
+    border-radius: 0.8rem;
+  }
+}
+
+@media (min-width: 960px) {
+  html:has(body.play) {
+    height: auto;
+    overflow: auto;
+  }
+
+  body.play {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
+
+  body.play .shell {
+    width: min(72rem, calc(100% - 4rem));
+    height: auto;
+    min-height: 100vh;
+    margin-inline: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  body.play .site-header {
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  body.play .page {
+    display: block;
+    padding: clamp(2.4rem, 6vw, 4.25rem) 0 clamp(3rem, 8vw, 5.5rem);
+  }
+
+  body.play .page-header h1 {
+    font-size: clamp(3rem, 7vw, 5rem);
+    line-height: 0.94;
+  }
+
+  body.play .page-header .lede {
+    display: block;
+    margin-top: 1rem;
+    font-size: clamp(1.45rem, 2.5vw, 2rem);
+    line-height: 1.28;
+  }
+
+  body.play .play-note {
+    display: block;
+  }
+
+  body.play .site-footer {
+    display: flex;
+  }
+
+  body.play .scoreboard {
+    margin-top: 0.85rem;
+    font-size: 1rem;
+  }
+
+  body.play .stage {
+    flex: none;
+    width: min(100%, 50rem);
+    height: min(68vh, 34rem);
+    margin-top: 1.35rem;
+  }
+
+  body.play .ride-pad {
+    width: min(100%, 50rem);
+    margin-top: 0.85rem;
+  }
+
+  body.play .ride-key {
+    min-height: 3rem;
+  }
+}
+
+body.site-games {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+body.site-games .site-header {
+  padding-top: env(safe-area-inset-top);
+}
+
+body.site-games .site-footer {
+  padding-bottom: calc(1.75rem + env(safe-area-inset-bottom));
 }
