@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Dirt Trail">
   <title>Dirt Trail · Eric Anderson</title>
   <meta name="description" content="Play Dirt Trail, a side-view dirt bike game. Gas, brake, and lean across three short courses.">
   <meta name="theme-color" id="theme-color" content="#f4f0e7">
@@ -28,7 +32,7 @@
     })();
   </script>
 </head>
-<body>
+<body class="play play-dirt">
   <a class="skip-link" href="#content">Skip to content</a>
   <div class="shell">
     <header class="site-header">
@@ -84,6 +88,7 @@
         <span>Time <strong id="dirt-time">0:00.00</strong></span>
         <span>Best <strong id="dirt-best">—</strong></span>
       </p>
+      <p class="rotate-hint">Turn sideways for a wider trail.</p>
       <div class="ride-pad" id="ride-pad" role="group" aria-label="Riding controls">
         <button class="ride-key" type="button" data-act="back" aria-pressed="false" aria-label="Lean back">Back</button>
         <button class="ride-key" type="button" data-act="gas" aria-pressed="false" aria-label="Accelerate">Gas</button>

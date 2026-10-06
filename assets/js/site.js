@@ -82,4 +82,14 @@
       if (window.matchMedia("(min-width: 861px)").matches) setMenu(false);
     });
   }
+
+  if (document.body.classList.contains("play")) {
+    document.addEventListener("touchmove", function (event) {
+      if (event.target.closest && event.target.closest("a, .site-nav, .nav-toggle, .theme-toggle")) return;
+      if (event.cancelable) event.preventDefault();
+    }, { passive: false });
+    document.addEventListener("gesturestart", function (event) {
+      event.preventDefault();
+    });
+  }
 })();

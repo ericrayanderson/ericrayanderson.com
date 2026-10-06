@@ -621,7 +621,7 @@
     updateDust(dt);
     var look = clamp(bike.vx * 0.12, -20, 90);
     var targetX = bike.x - 220 + look;
-    var targetY = clamp(bike.y - 255, -24, 80);
+    var targetY = clamp(bike.y - H * 0.52, -H, H);
     if (state === "ready") {
       cam.x = targetX;
       cam.y = targetY;
@@ -902,22 +902,14 @@
   }
 
   function resize() {
-    var parent = stage.parentElement;
-    var avail = parent ? parent.clientWidth : 800;
-    var width = Math.min(avail, 800);
-    var height = Math.round(width * (H / W));
-    var maxH = Math.max(220, Math.min(window.innerHeight * 0.62, 520));
-    if (height > maxH) {
-      height = Math.round(maxH);
-      width = Math.round(height * (W / H));
-    }
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
-    stage.style.width = width + "px";
-    if (pad) pad.style.width = width + "px";
-    canvas.width = Math.max(1, Math.round(width * dpr));
-    canvas.height = Math.max(1, Math.round(height * dpr));
+    var cssW = stage.clientWidth;
+    var cssH = stage.clientHeight;
+    if (cssW < 2 || cssH < 2) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    W = 800;
+    H = W * (cssH / cssW);
+    canvas.width = Math.max(1, Math.round(cssW * dpr));
+    canvas.height = Math.max(1, Math.round(cssH * dpr));
     ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   }
 
@@ -1062,7 +1054,12 @@
     last = 0;
   });
 
+  stage.addEventListener("contextmenu", function (event) {
+    event.preventDefault();
+  });
+
   window.addEventListener("resize", resize);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", resize);
   if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
 
   level = LEVELS[0];

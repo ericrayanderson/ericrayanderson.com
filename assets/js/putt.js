@@ -22,30 +22,42 @@
   var T = 46;
   var R = 754;
   var B = 434;
+  var dragMax = 168;
+  var shotSpeed = 720;
+  var placed = false;
 
+  /* Positions are fractions of the green, so a tall phone and a wide desktop share one layout. */
   var holes = [
     {
       title: "Warm-up",
       par: 2,
-      ball: { x: 150, y: 240 },
-      cup: { x: 650, y: 240 },
+      ball: { nx: 0.1469, ny: 0.5 },
+      cup: { nx: 0.8531, ny: 0.5 },
       blocks: []
     },
     {
       title: "Center post",
       par: 3,
-      ball: { x: 140, y: 240 },
-      cup: { x: 660, y: 240 },
-      blocks: [{ x: 372, y: 150, w: 56, h: 180 }]
+      ball: { nx: 0.1328, ny: 0.5 },
+      cup: { nx: 0.8672, ny: 0.5 },
+      blocks: [{ nx: 0.4605, ny: 0.268, nw: 0.0791, nh: 0.4639 }]
     },
     {
       title: "Dogleg",
       par: 3,
-      ball: { x: 150, y: 360 },
-      cup: { x: 630, y: 120 },
-      blocks: [{ x: 300, y: 46, w: 44, h: 250 }]
+      ball: { nx: 0.1469, ny: 0.8093 },
+      cup: { nx: 0.825, ny: 0.1907 },
+      blocks: [{ nx: 0.3588, ny: 0, nw: 0.0621, nh: 0.6443 }]
     }
   ];
+
+  var live = {
+    title: "Warm-up",
+    par: 2,
+    ball: { x: 150, y: 240 },
+    cup: { x: 650, y: 240 },
+    blocks: []
+  };
 
   var holeIndex = 0;
   var ball = { x: 0, y: 0, vx: 0, vy: 0 };
@@ -86,7 +98,41 @@
   }
 
   function hole() {
-    return holes[holeIndex];
+    return live;
+  }
+
+  function layoutCourse() {
+    var pad = Math.max(22, Math.min(W, H) * 0.045);
+    L = pad;
+    T = pad;
+    R = W - pad;
+    B = H - pad;
+    var src = holes[holeIndex];
+    var bw = R - L;
+    var bh = B - T;
+    live.title = src.title;
+    live.par = src.par;
+    live.ball = { x: L + src.ball.nx * bw, y: T + src.ball.ny * bh };
+    live.cup = { x: L + src.cup.nx * bw, y: T + src.cup.ny * bh };
+    live.blocks = [];
+    var i;
+    for (i = 0; i < src.blocks.length; i++) {
+      var block = src.blocks[i];
+      live.blocks.push({
+        x: L + block.nx * bw,
+        y: T + block.ny * bh,
+        w: block.nw * bw,
+        h: block.nh * bh
+      });
+    }
+    var cssW = Math.max(1, stage.clientWidth);
+    var worldPerCss = W / cssW;
+    var minBall = (cssW < 720 ? 18 : 11) * worldPerCss;
+    var minCup = (cssW < 720 ? 20 : 13) * worldPerCss;
+    RAD = Math.max(9 * (bw / 708), minBall);
+    CUP = Math.max(13 * (bw / 708), minCup);
+    dragMax = Math.min(bw, bh) * 0.34;
+    shotSpeed = 720 * (bw / 708);
   }
 
   function placeBall() {
@@ -103,7 +149,9 @@
     phase = "play";
     aiming = false;
     aim = null;
+    layoutCourse();
     placeBall();
+    placed = true;
     if (overlay) overlay.hidden = true;
     updateHud();
   }
@@ -118,22 +166,34 @@
   }
 
   function resize() {
-    var parent = stage.parentElement;
-    var avail = parent ? parent.clientWidth : 800;
-    var width = Math.min(avail, 800);
-    var height = Math.round(width * (H / W));
-    var maxH = Math.max(220, Math.min(window.innerHeight * 0.62, 500));
-    if (height > maxH) {
-      height = Math.round(maxH);
-      width = Math.round(height * (W / H));
-    }
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
-    stage.style.width = width + "px";
-    canvas.width = Math.max(1, Math.round(width * dpr));
-    canvas.height = Math.max(1, Math.round(height * dpr));
+    var cssW = stage.clientWidth;
+    var cssH = stage.clientHeight;
+    if (cssW < 2 || cssH < 2) return;
+    var oldW = R - L || 1;
+    var oldH = B - T || 1;
+    var nx = (ball.x - L) / oldW;
+    var ny = (ball.y - T) / oldH;
+    var nvx = ball.vx / oldW;
+    var nvy = ball.vy / oldH;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    W = 800;
+    H = W * (cssH / cssW);
+    canvas.width = Math.max(1, Math.round(cssW * dpr));
+    canvas.height = Math.max(1, Math.round(cssH * dpr));
     ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+    layoutCourse();
+    if (!placed) return;
+    if (phase === "play") {
+      ball.x = L + nx * (R - L);
+      ball.y = T + ny * (B - T);
+      ball.vx = nvx * (R - L);
+      ball.vy = nvy * (B - T);
+    } else {
+      ball.x = live.cup.x;
+      ball.y = live.cup.y;
+      ball.vx = 0;
+      ball.vy = 0;
+    }
   }
 
   function worldPoint(event) {
@@ -256,10 +316,10 @@
     var dy = point.y - ball.y;
     var len = Math.hypot(dx, dy);
     if (len < 16) return;
-    var capped = Math.min(len, 168);
-    var scale = capped / 168;
-    ball.vx = (dx / len) * scale * 720;
-    ball.vy = (dy / len) * scale * 720;
+    var capped = Math.min(len, dragMax);
+    var scale = capped / dragMax;
+    ball.vx = (dx / len) * scale * shotSpeed;
+    ball.vy = (dy / len) * scale * shotSpeed;
     holeStrokes += 1;
     updateHud();
   }
@@ -310,7 +370,7 @@
       var dy = aim.y - ball.y;
       var len = Math.hypot(dx, dy);
       if (len > 8) {
-        var shown = Math.min(len, 168);
+        var shown = Math.min(len, dragMax);
         var nx = dx / len;
         var ny = dy / len;
         ctx.strokeStyle = palette.aim;
@@ -408,8 +468,13 @@
     });
   }
 
+  stage.addEventListener("contextmenu", function (event) {
+    event.preventDefault();
+  });
+
   window.addEventListener("resize", resize);
-  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage.parentElement || stage);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", resize);
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
 
   loadHole(0);
   resize();
