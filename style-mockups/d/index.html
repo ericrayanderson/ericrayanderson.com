@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Eric Anderson</title>
+  <meta name="description" content="Eric Anderson, Wake Forest, NC. An R console for browser games, Shiny packages, and learning games.">
+  <meta name="theme-color" id="theme-color" content="#1e1e1e">
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script>document.documentElement.classList.add("is-console");</script>
+</head>
+<body>
+  <a class="skip-link" href="#normal-view">Skip to links</a>
+  <div class="corner">
+    <button class="corner-btn" id="view-toggle" type="button" hidden>Normal view</button>
+    <button class="corner-btn" id="theme-toggle" type="button" hidden>Light</button>
+  </div>
+
+  <div id="console" class="console" hidden>
+    <div id="log" class="log" aria-hidden="true"></div>
+    <div class="dock">
+      <form id="prompt-form" class="prompt-row" autocomplete="off">
+        <label class="gt" for="prompt">&gt;</label>
+        <input id="prompt" name="prompt" type="text" readonly inputmode="none" enterkeyhint="send" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="R prompt">
+      </form>
+      <div class="chips" role="group" aria-label="Commands">
+        <button type="button" data-cmd="help()">help()</button>
+        <button type="button" data-cmd="about()">about()</button>
+        <button type="button" data-cmd="projects()">projects()</button>
+        <button type="button" data-cmd="games()">games()</button>
+        <button type="button" data-cmd="play(&quot;helicopter&quot;)">play("helicopter")</button>
+        <button type="button" data-cmd="play(&quot;putt&quot;)">play("putt")</button>
+        <button type="button" data-cmd="play(&quot;dirtbike&quot;)">play("dirtbike")</button>
+        <button type="button" data-cmd="play(&quot;learning&quot;)">play("learning")</button>
+        <button type="button" data-cmd="contact()">contact()</button>
+        <button type="button" data-cmd="github()">github()</button>
+        <button type="button" data-cmd="clear()">clear()</button>
+      </div>
+    </div>
+  </div>
+
+  <main id="normal-view">
+    <h1>Eric Anderson</h1>
+    <p>Wake Forest, NC. A personal site with projects and tools.</p>
+    <ul>
+      <li><a href="../../about.html">About</a></li>
+      <li><a href="../../projects.html">Projects</a></li>
+      <li><a href="../../projects.html#learning-games">Learning Games</a></li>
+      <li><a href="../../projects.html#shinymaterial">shinymaterial</a></li>
+      <li><a href="../../projects.html#shinyglass">shinyglass</a></li>
+      <li><a href="../../helicopter.html">Helicopter</a></li>
+      <li><a href="../../putt.html">Mini putt</a></li>
+      <li><a href="../../dirtbike.html">Dirt Trail</a></li>
+      <li><a href="https://ericrayanderson.github.io/learning-terminal/">Learning Terminal</a></li>
+      <li><a href="../../contact.html">Contact</a></li>
+      <li><a href="mailto:eric.ray.anderson@gmail.com">eric.ray.anderson@gmail.com</a></li>
+      <li><a rel="me" href="https://github.com/ericrayanderson">GitHub</a></li>
+    </ul>
+  </main>
+  <script src="console.js"></script>
+</body>
+</html>
