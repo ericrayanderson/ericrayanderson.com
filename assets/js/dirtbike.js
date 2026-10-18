@@ -11,8 +11,7 @@
   var bestEl = document.getElementById("dirt-best");
   var live = document.getElementById("dirt-live");
   var pad = document.getElementById("ride-pad");
-  var gravityInput = document.getElementById("dirt-gravity");
-  var gravityValue = document.getElementById("dirt-gravity-value");
+  var gravityButtons = document.querySelectorAll(".gravity-choices button");
   if (!canvas || !canvas.getContext || !stage) return;
 
   var ctx = canvas.getContext("2d", { alpha: false });
@@ -126,30 +125,41 @@
     bests = {};
   }
 
-  function formatGravity(scale) {
-    var shown = Math.round(scale * 20) / 20;
-    var text = shown.toFixed(2).replace(/0$/, "").replace(/\.0$/, "");
-    return text + "x";
+  var GRAVITY_STEPS = [0.01, 0.1, 0.5, 1, 2];
+
+  function nearestGravity(raw) {
+    var value = Number(raw);
+    if (!isFinite(value)) return 1;
+    var best = GRAVITY_STEPS[0];
+    var bestDist = Math.abs(value - best);
+    var i;
+    for (i = 1; i < GRAVITY_STEPS.length; i++) {
+      var dist = Math.abs(value - GRAVITY_STEPS[i]);
+      if (dist <= bestDist) {
+        best = GRAVITY_STEPS[i];
+        bestDist = dist;
+      }
+    }
+    return best;
   }
 
   function readGravity() {
     try {
       var raw = parseFloat(localStorage.getItem(GRAVITY_KEY));
-      if (isFinite(raw)) return clamp(Math.round(raw * 20) / 20, 0.1, 2);
+      if (isFinite(raw)) return nearestGravity(raw);
     } catch (error) {
-      /* Storage can be blocked. The slider still works for this visit. */
+      /* Storage can be blocked. The buttons still work for this visit. */
     }
     return 1;
   }
 
-  function applyGravity(scale, persist, writeControl) {
-    gravityScale = clamp(Math.round(Number(scale) * 20) / 20, 0.1, 2);
-    var label = formatGravity(gravityScale);
-    if (gravityValue) gravityValue.textContent = label;
-    if (gravityInput) {
-      if (writeControl) gravityInput.value = String(gravityScale);
-      gravityInput.setAttribute("aria-valuenow", String(gravityScale));
-      gravityInput.setAttribute("aria-valuetext", label);
+  function applyGravity(scale, persist) {
+    gravityScale = nearestGravity(scale);
+    var i;
+    for (i = 0; i < gravityButtons.length; i++) {
+      var button = gravityButtons[i];
+      var on = Math.abs(parseFloat(button.getAttribute("data-g")) - gravityScale) < 1e-6;
+      button.setAttribute("aria-pressed", on ? "true" : "false");
     }
     if (!persist) return;
     try {
@@ -357,12 +367,13 @@
     var axleVy = bike.vy + bike.angVel * rx;
     var vn = axleVx * g.nx + axleVy * g.ny;
     var vt = axleVx * g.tx + axleVy * g.ty;
-    var springK = SPRING * gravityScale;
-    var dampC = DAMP * Math.sqrt(gravityScale);
+    var gNow = nearestGravity(gravityScale);
+    var springK = SPRING * gNow;
+    var dampC = DAMP * Math.sqrt(gNow);
     var force = 0;
     if (compression > 0) {
       force = compression * springK - vn * dampC;
-      if (compression > 9) force += (compression - 9) * BUMP * gravityScale;
+      if (compression > 9) force += (compression - 9) * BUMP * gNow;
       if (force < 0) force = 0;
     }
     return {
@@ -391,8 +402,10 @@
       return;
     }
 
+    var gNow = nearestGravity(gravityScale);
+    var gripFloor = 220 * gNow;
     var fx = 0;
-    var fy = GRAVITY * gravityScale;
+    var fy = GRAVITY * gNow;
     var torque = 0;
     var grounded = false;
     var contacts = [rear, front];
@@ -407,7 +420,7 @@
     }
 
     if (rear.compression > 0.4 && !rear.g.steep) {
-      var maxT = Math.max(220, MU * rear.load);
+      var maxT = Math.max(gripFloor, MU * rear.load);
       var drive = -rear.vt * ROLL;
       if (gas) drive += THROTTLE * (1 - clamp(Math.max(rear.vt, 0) / MAX_SPEED, 0, 1));
       if (brake && Math.abs(rear.vt) > 4) drive += -Math.sign(rear.vt) * BRAKE_FORCE;
@@ -418,7 +431,7 @@
       bike.spin += (rear.vt / WHEEL_R) * dt;
     }
     if (front.compression > 0.4 && brake && Math.abs(front.vt) > 4 && !front.g.steep) {
-      var maxFront = Math.max(220, MU * front.load);
+      var maxFront = Math.max(gripFloor, MU * front.load);
       var frontDrive = clamp(-Math.sign(front.vt) * BRAKE_FORCE * 0.55, -maxFront, maxFront);
       fx += front.g.tx * frontDrive;
       fy += front.g.ty * frontDrive;
@@ -999,6 +1012,7 @@
     if (!act && !startKey) return;
     if (blockedTyping()) return;
     var el = document.activeElement;
+    if (el && el.closest && el.closest(".gravity-bar")) return;
     var tag = el ? el.tagName : "";
     if (tag === "BUTTON" && el.id === "dirt-action" && state !== "playing" && startKey && !act) return;
     if (tag === "BUTTON" && el.id !== "dirt-action" && !(el.classList && el.classList.contains("ride-key")) && !act) return;
@@ -1056,24 +1070,15 @@
 
   if (actionBtn) actionBtn.addEventListener("click", primaryAction);
 
-  function onGravityInput() {
-    if (!gravityInput) return;
-    applyGravity(gravityInput.value, true, false);
+  function onGravityClick(event) {
+    applyGravity(event.currentTarget.getAttribute("data-g"), true);
   }
 
-  function leaveSliderAlone(event) {
-    event.stopPropagation();
+  var gi;
+  for (gi = 0; gi < gravityButtons.length; gi++) {
+    gravityButtons[gi].addEventListener("click", onGravityClick);
   }
-
-  if (gravityInput) {
-    gravityInput.addEventListener("input", onGravityInput);
-    gravityInput.addEventListener("change", onGravityInput);
-    gravityInput.addEventListener("pointerdown", leaveSliderAlone);
-    gravityInput.addEventListener("pointermove", leaveSliderAlone);
-    gravityInput.addEventListener("touchstart", leaveSliderAlone, { passive: true });
-    gravityInput.addEventListener("touchmove", leaveSliderAlone, { passive: true });
-  }
-  applyGravity(readGravity(), false, true);
+  applyGravity(readGravity(), false);
 
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
