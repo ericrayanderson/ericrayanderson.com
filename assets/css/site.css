@@ -953,6 +953,38 @@ main:focus {
   font-weight: 600;
 }
 
+.gravity-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.gravity-bar label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+}
+
+.gravity-bar strong {
+  color: var(--ink);
+  font-weight: 600;
+  min-width: 2.2rem;
+}
+
+.gravity-bar input[type="range"] {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  height: 2rem;
+  margin: 0;
+  accent-color: var(--accent);
+  touch-action: none;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1091,6 +1123,11 @@ body.play .scoreboard {
   font-size: 0.95rem;
 }
 
+body.play .gravity-bar {
+  margin-top: 0.28rem;
+  font-size: 0.9rem;
+}
+
 body.play .stage {
   flex: 1 1 auto;
   width: 100%;
@@ -1135,6 +1172,15 @@ body.play .stage canvas {
   body.play .scoreboard,
   body.play .stage {
     margin-top: 0.3rem;
+  }
+
+  body.play .gravity-bar {
+    margin-top: 0.15rem;
+    font-size: 0.85rem;
+  }
+
+  body.play .gravity-bar input[type="range"] {
+    height: 1.6rem;
   }
 
   body.play-dirt .ride-pad {
@@ -1204,6 +1250,12 @@ body.play .stage canvas {
 
   body.play .scoreboard {
     margin-top: 0.85rem;
+    font-size: 1rem;
+  }
+
+  body.play .gravity-bar {
+    width: min(100%, 50rem);
+    margin-top: 0.45rem;
     font-size: 1rem;
   }
 
