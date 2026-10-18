@@ -406,7 +406,6 @@
     }
 
     var gNow = nearestGravity(gravityScale);
-    var gripFloor = 220 * gNow;
     var fx = 0;
     var fy = GRAVITY * gNow;
     var torque = 0;
@@ -423,7 +422,7 @@
     }
 
     if (rear.compression > 0.4 && !rear.g.steep) {
-      var maxT = Math.max(gripFloor, MU * rear.load);
+      var maxT = Math.max(220, MU * rear.compression * SPRING);
       var drive = -rear.vt * ROLL;
       if (gas) drive += THROTTLE * (1 - clamp(Math.max(rear.vt, 0) / MAX_SPEED, 0, 1));
       if (brake && Math.abs(rear.vt) > 4) drive += -Math.sign(rear.vt) * BRAKE_FORCE;
@@ -434,7 +433,7 @@
       bike.spin += (rear.vt / WHEEL_R) * dt;
     }
     if (front.compression > 0.4 && brake && Math.abs(front.vt) > 4 && !front.g.steep) {
-      var maxFront = Math.max(gripFloor, MU * front.load);
+      var maxFront = Math.max(220, MU * front.compression * SPRING);
       var frontDrive = clamp(-Math.sign(front.vt) * BRAKE_FORCE * 0.55, -maxFront, maxFront);
       fx += front.g.tx * frontDrive;
       fy += front.g.ty * frontDrive;
@@ -450,6 +449,12 @@
 
     bike.vx += fx * dt;
     bike.vy += fy * dt;
+    if (!grounded && gNow < 1) {
+      var under = sample(bike.x);
+      var clear = under.y - bike.y;
+      // A small hop still has ground just underneath. Pull at normal weight until the bike is clear, so a bump does not hang. A real jump leaves this range and keeps the low gravity.
+      if (!under.steep && clear > 0 && clear < 46) bike.vy += GRAVITY * (1 - gNow) * dt;
+    }
     bike.angVel += (torque / INERTIA) * dt;
     bike.angVel *= Math.exp((grounded ? -5.5 : -0.45) * dt);
     if (rear.compression > 0.8 && front.compression < 0.3 && lean === 0 && bike.angVel > 0) {
