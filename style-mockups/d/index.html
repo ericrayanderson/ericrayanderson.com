@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Eric Anderson</title>
-  <meta name="description" content="Eric Anderson, Wake Forest, NC. An R console for browser games, Shiny packages, and learning games.">
+  <meta name="description" content="Eric Anderson, Wake Forest, NC. A personal site with projects and tools.">
   <meta name="theme-color" id="theme-color" content="#1e1e1e">
   <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -13,29 +13,33 @@
 <body>
   <a class="skip-link" href="#normal-view">Skip to links</a>
   <div class="corner">
-    <button class="corner-btn" id="view-toggle" type="button" hidden>Normal view</button>
-    <button class="corner-btn" id="theme-toggle" type="button" hidden>Light</button>
+    <button class="menu-btn" id="menu-toggle" type="button" aria-expanded="false" aria-controls="corner-menu" aria-label="Options" hidden>
+      <svg viewBox="0 0 16 16" aria-hidden="true" width="16" height="16">
+        <circle cx="3" cy="8" r="1.3" fill="currentColor"></circle>
+        <circle cx="8" cy="8" r="1.3" fill="currentColor"></circle>
+        <circle cx="13" cy="8" r="1.3" fill="currentColor"></circle>
+      </svg>
+    </button>
+    <div class="corner-menu" id="corner-menu" hidden>
+      <button id="view-toggle" type="button">Normal view</button>
+      <button id="theme-toggle" type="button">Light</button>
+    </div>
   </div>
 
   <div id="console" class="console" hidden>
-    <div id="log" class="log" aria-hidden="true"></div>
+    <div id="log" class="log" aria-hidden="true">
+      <header class="hello">
+        <h1>Eric Anderson</h1>
+        <p>Wake Forest, NC</p>
+        <p class="hint">Tap a command.</p>
+      </header>
+    </div>
     <div class="dock">
-      <form id="prompt-form" class="prompt-row" autocomplete="off">
-        <label class="gt" for="prompt">&gt;</label>
-        <input id="prompt" name="prompt" type="text" readonly inputmode="none" enterkeyhint="send" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="R prompt">
-      </form>
       <div class="chips" role="group" aria-label="Commands">
-        <button type="button" data-cmd="help()">help()</button>
-        <button type="button" data-cmd="about()">about()</button>
-        <button type="button" data-cmd="projects()">projects()</button>
-        <button type="button" data-cmd="games()">games()</button>
-        <button type="button" data-cmd="play(&quot;helicopter&quot;)">play("helicopter")</button>
-        <button type="button" data-cmd="play(&quot;putt&quot;)">play("putt")</button>
-        <button type="button" data-cmd="play(&quot;dirtbike&quot;)">play("dirtbike")</button>
-        <button type="button" data-cmd="play(&quot;learning&quot;)">play("learning")</button>
-        <button type="button" data-cmd="contact()">contact()</button>
-        <button type="button" data-cmd="github()">github()</button>
-        <button type="button" data-cmd="clear()">clear()</button>
+        <button type="button" data-cmd="projects">show projects</button>
+        <button type="button" data-cmd="games">show games</button>
+        <button type="button" data-cmd="about">about</button>
+        <button type="button" data-cmd="contact">contact</button>
       </div>
     </div>
   </div>
