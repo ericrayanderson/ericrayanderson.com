@@ -89,8 +89,14 @@
         <span>Best <strong id="dirt-best">—</strong></span>
       </p>
       <div class="gravity-bar">
-        <label for="dirt-gravity">Gravity <strong id="dirt-gravity-value">1x</strong></label>
-        <input id="dirt-gravity" type="range" min="0.1" max="2" step="0.05" value="1" aria-valuemin="0.1" aria-valuemax="2" aria-valuenow="1" aria-valuetext="1x">
+        <span class="gravity-name" id="gravity-label">Gravity</span>
+        <div class="gravity-choices" role="group" aria-labelledby="gravity-label">
+          <button type="button" data-g="0.01" aria-pressed="false">.01x</button>
+          <button type="button" data-g="0.1" aria-pressed="false">.1x</button>
+          <button type="button" data-g="0.5" aria-pressed="false">.5x</button>
+          <button type="button" data-g="1" aria-pressed="true">Normal</button>
+          <button type="button" data-g="2" aria-pressed="false">2x</button>
+        </div>
       </div>
       <p class="rotate-hint">Turn sideways for a wider trail.</p>
       <div class="ride-pad" id="ride-pad" role="group" aria-label="Riding controls">
