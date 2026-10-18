@@ -49,8 +49,8 @@ The home console follows the system light or dark setting. The other pages follo
 Copy stays inside what is already public: Wake Forest, North Carolina, the old one-line introduction, Learning Games, and the CRAN packages shinymaterial and shinyglass. Placeholders are marked on the page with a Placeholder label, and in the HTML with `class="slot"`.
 
 - About: replace the biography slot with Eric’s own words.
-- Games: Helicopter, mini putt, and Dirt Trail are playable in the browser. Learning Terminal is embedded from [ericrayanderson.github.io/learning-terminal](https://ericrayanderson.github.io/learning-terminal/); its source stays in that repository.
-- Projects: Learning Games links to the Learning Terminal entry on the Games page.
+- Games: Helicopter, mini putt, and Dirt Trail are playable in the browser.
+- Projects: Learning Games links to the live Learning Terminal at [ericrayanderson.github.io/learning-terminal](https://ericrayanderson.github.io/learning-terminal/). Its source stays in that repository.
 - Contact: `eric.ray.anderson@gmail.com`, already public on GitHub and CRAN.
 
 ## Publish with GitHub Pages

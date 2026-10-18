@@ -7,7 +7,7 @@
     projects: {
       line: "show projects",
       rows: [
-        ["Learning Games", "Phonics, typing, and numbers.", "projects.html#learning-games"],
+        ["Learning Games", "Phonics, typing, and numbers.", "https://ericrayanderson.github.io/learning-terminal/"],
         ["shinymaterial", "Material Design for Shiny.", "projects.html#shinymaterial"],
         ["shinyglass", "Liquid glass themes.", "projects.html#shinyglass"]
       ]
@@ -17,8 +17,7 @@
       rows: [
         ["play helicopter", "Fly a cave.", "helicopter.html"],
         ["play putt", "Three holes.", "putt.html"],
-        ["play dirtbike", "A short trail.", "dirtbike.html"],
-        ["play learning", "Games for kids.", "games.html#learning-terminal"]
+        ["play dirtbike", "A short trail.", "dirtbike.html"]
       ]
     },
     about: {
