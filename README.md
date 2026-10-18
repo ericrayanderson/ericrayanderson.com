@@ -18,7 +18,8 @@ Any static file server works the same way. Opening `index.html` directly in a br
 
 | File | Page |
 | --- | --- |
-| `index.html` | Home |
+| `index.html` | Home, a clickable console |
+| `plain.html` | Normal view, a plain list of the same links |
 | `games.html` | Games |
 | `helicopter.html` | Helicopter |
 | `putt.html` | Mini putt |
@@ -30,8 +31,10 @@ Any static file server works the same way. Opening `index.html` directly in a br
 
 Shared files:
 
-- `assets/css/site.css` — layout, type, light and dark themes
-- `assets/js/site.js` — theme toggle and the small-screen menu
+- `assets/css/site.css` for the rest of the site: layout, type, light and dark themes
+- `assets/css/home.css` for the home console and the plain link list
+- `assets/js/site.js` for the theme toggle and the small-screen menu on the other pages
+- `assets/js/home.js` for the home commands
 - `assets/js/helicopter.js` — cave flyer
 - `assets/js/putt.js` — top-view mini putt
 - `assets/js/dirtbike.js` — side-view dirt bike (Dirt Trail)
@@ -39,7 +42,7 @@ Shared files:
 - `CNAME` — custom domain for GitHub Pages
 - `.nojekyll` — tells GitHub Pages to serve the files as-is
 
-The theme follows the system setting until a visitor chooses light or dark. That choice is stored in `localStorage` under the key `theme`.
+The home console follows the system light or dark setting. The other pages follow the system until a visitor chooses light or dark. That choice is stored in `localStorage` under the key `theme`.
 
 ## What to edit
 

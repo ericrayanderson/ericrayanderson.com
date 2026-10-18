@@ -1,0 +1,248 @@
+/* Home console. Light and dark follow the system. */
+
+:root {
+  color-scheme: light;
+  --bg: #f4f1ea;
+  --fg: #241f1a;
+  --muted: #6a625a;
+  --prompt: #8a5410;
+  --link: #1a4f86;
+  --line: #e3ddd3;
+  --chip: #fffcf8;
+  --chip-text: #241f1a;
+  --chip-on: #f6efe2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #1c1c1c;
+    --fg: #e6e6e6;
+    --muted: #9a9a9a;
+    --prompt: #e4c07a;
+    --link: #9ecbff;
+    --line: #3a3a3a;
+    --chip: #2a2a2a;
+    --chip-text: #e6e6e6;
+    --chip-on: #2c2822;
+  }
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+body { overflow-x: hidden; }
+
+a { color: var(--link); }
+
+:focus-visible {
+  outline: 2px solid var(--prompt);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  transform: translateY(-160%);
+  background: var(--prompt);
+  color: var(--bg);
+  padding: 0.4rem 0.7rem;
+  z-index: 30;
+}
+
+.skip-link:focus { transform: none; }
+
+.corner {
+  position: fixed;
+  top: max(0.55rem, env(safe-area-inset-top));
+  right: max(0.55rem, env(safe-area-inset-right));
+  z-index: 20;
+}
+
+.view-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  text-decoration: none;
+  padding: 0.35rem 0.1rem;
+}
+
+.view-link:hover,
+.view-link:focus-visible { color: var(--fg); }
+
+.console {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.console[hidden] { display: none; }
+
+.log {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: calc(4.25rem + env(safe-area-inset-top)) 1.25rem calc(2rem + env(safe-area-inset-bottom));
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
+}
+
+.hello h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.hello p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.hello .chips { margin-top: 1.35rem; }
+
+.entry { margin-top: 1.75rem; }
+
+.echo { margin: 0 0 0.85rem; }
+
+.gt {
+  color: var(--prompt);
+  margin-right: 0.55rem;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rows a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0;
+  color: var(--link);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.rows a:hover,
+.rows a:focus-visible { border-bottom-color: var(--line); }
+
+.rows .note {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chips button {
+  appearance: none;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--chip-text);
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.chips button:hover,
+.chips button:focus-visible { border-color: var(--prompt); }
+
+.chips button[aria-pressed="true"] {
+  border-color: var(--prompt);
+  color: var(--prompt);
+  background: var(--chip-on);
+}
+
+.plain {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: calc(4.5rem + env(safe-area-inset-top)) 1.25rem 2.5rem;
+}
+
+.plain h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 650;
+}
+
+.plain p { color: var(--muted); }
+
+.plain ul {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plain a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+html.is-console .console[hidden] { display: flex; }
+
+html.is-console .plain-fallback {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 520px) {
+  .chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 860px) {
+  .log,
+  .plain {
+    width: min(40rem, 100%);
+    margin-inline: auto;
+  }
+
+  .chips { flex-wrap: nowrap; }
+}
