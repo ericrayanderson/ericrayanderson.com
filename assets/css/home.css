@@ -88,6 +88,14 @@ a { color: var(--link); }
 .view-link:hover,
 .view-link:focus-visible { color: var(--fg); }
 
+.view-link.home-link {
+  color: var(--prompt);
+  font-weight: 600;
+}
+
+.view-link.home-link:hover,
+.view-link.home-link:focus-visible { color: var(--fg); }
+
 .console {
   min-height: 100dvh;
   display: flex;

@@ -9,60 +9,20 @@
   <meta name="apple-mobile-web-app-title" content="Dirt Trail">
   <title>Dirt Trail · Eric Anderson</title>
   <meta name="description" content="Play Dirt Trail, a side-view dirt bike game. Gas, brake, and lean across three short courses.">
-  <meta name="theme-color" id="theme-color" content="#f4f0e7">
+  <meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1c1c1c" media="(prefers-color-scheme: dark)">
   <meta property="og:title" content="Dirt Trail · Eric Anderson">
   <meta property="og:description" content="A self-hosted side-view dirt bike game with three short trails.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_US">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="assets/fonts/fraunces-roman.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fonts/source-sans-3-roman.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/css/site.css">
-  <script>
-    (function () {
-      var theme = "light";
-      try {
-        var stored = localStorage.getItem("theme");
-        if (stored === "light" || stored === "dark") theme = stored;
-        else if (window.matchMedia("(prefers-color-scheme: dark)").matches) theme = "dark";
-      } catch (error) {}
-      document.documentElement.setAttribute("data-theme", theme);
-      var meta = document.getElementById("theme-color");
-      if (meta) meta.setAttribute("content", theme === "dark" ? "#12110f" : "#f4f0e7");
-    })();
-  </script>
 </head>
 <body class="play play-dirt">
   <a class="skip-link" href="#content">Skip to content</a>
   <div class="shell">
     <header class="site-header">
-      <a class="brand" href="index.html" aria-label="Eric Anderson, home">
-        <span class="brand-mark" aria-hidden="true">EA</span>
-        <span class="brand-name">Eric Anderson</span>
-      </a>
-      <div class="header-tools">
-        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark theme">
-          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M14.4 3.4a8.3 8.3 0 1 0 6.2 12.5A7.1 7.1 0 0 1 14.4 3.4z"/>
-          </svg>
-          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="3.4" fill="currentColor"/>
-            <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-              <path d="M12 3.2v2.2M12 18.6v2.2M3.2 12h2.2M18.6 12h2.2M5.8 5.8l1.6 1.6M16.6 16.6l1.6 1.6M18.2 5.8l-1.6 1.6M7.4 16.6l-1.6 1.6"/>
-            </g>
-          </svg>
-        </button>
-        <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
-          <span class="nav-toggle-label">Menu</span>
-        </button>
-      </div>
-      <nav class="site-nav" id="site-nav" aria-label="Primary">
-        <a href="index.html">Home</a>
-        <a href="games.html" aria-current="page">Games</a>
-        <a href="about.html">About</a>
-        <a href="projects.html">Projects</a>
-        <a href="contact.html">Contact</a>
-      </nav>
+      <a class="home-link" href="index.html">eric&gt;</a>
     </header>
 
     <main id="content" class="page" tabindex="-1">
@@ -86,7 +46,7 @@
         <span>Trail <strong id="dirt-trail">1</strong> of 3</span>
         <span id="dirt-name">Pasture</span>
         <span>Time <strong id="dirt-time">0:00.00</strong></span>
-        <span>Best <strong id="dirt-best">—</strong></span>
+        <span>Best <strong id="dirt-best">none</strong></span>
       </p>
       <div class="gravity-bar">
         <span class="gravity-name" id="gravity-label">Gravity</span>
