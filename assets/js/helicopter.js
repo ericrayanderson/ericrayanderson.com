@@ -33,23 +33,26 @@
     best = 0;
   }
 
+  function isDark() {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
   function colors() {
-    var dark = document.documentElement.getAttribute("data-theme") === "dark";
-    if (dark) {
+    if (isDark()) {
       return {
-        sky: "#12110f",
-        rock: "#2a2824",
-        edge: "#b7d7c6",
-        heli: "#b7d7c6",
-        window: "#1a2420"
+        sky: "#1c1c1c",
+        rock: "#2a2a2a",
+        edge: "#e4c07a",
+        heli: "#9ecbff",
+        window: "#1c1c1c"
       };
     }
     return {
-      sky: "#f4f0e7",
-      rock: "#1b1814",
-      edge: "#1c5c43",
-      heli: "#1c5c43",
-      window: "#e7f2ec"
+      sky: "#f4f1ea",
+      rock: "#241f1a",
+      edge: "#8a5410",
+      heli: "#1a4f86",
+      window: "#fffcf8"
     };
   }
 

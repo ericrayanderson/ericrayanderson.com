@@ -31,18 +31,17 @@ Any static file server works the same way. Opening `index.html` directly in a br
 
 Shared files:
 
-- `assets/css/site.css` for the rest of the site: layout, type, light and dark themes
+- `assets/css/site.css` for the rest of the site. Same monospace and palette as the home console. Light and dark follow the system.
 - `assets/css/home.css` for the home console and the plain link list
-- `assets/js/site.js` for the theme toggle and the small-screen menu on the other pages
+- `assets/js/site.js` keeps a finger from scrolling a game page
 - `assets/js/home.js` for the home commands
-- `assets/js/helicopter.js` — cave flyer
-- `assets/js/putt.js` — top-view mini putt
-- `assets/js/dirtbike.js` — side-view dirt bike (Dirt Trail)
-- `assets/fonts/` — self-hosted Fraunces and Source Sans 3 (SIL Open Font License)
-- `CNAME` — custom domain for GitHub Pages
-- `.nojekyll` — tells GitHub Pages to serve the files as-is
+- `assets/js/helicopter.js`: cave flyer
+- `assets/js/putt.js`: top-view mini putt
+- `assets/js/dirtbike.js`: side-view dirt bike (Dirt Trail)
+- `CNAME`: custom domain for GitHub Pages
+- `.nojekyll`: tells GitHub Pages to serve the files as-is
 
-The home console follows the system light or dark setting. The other pages follow the system until a visitor chooses light or dark. That choice is stored in `localStorage` under the key `theme`.
+The whole site follows the system light or dark setting. There is no theme toggle.
 
 ## What to edit
 

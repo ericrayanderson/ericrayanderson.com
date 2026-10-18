@@ -169,41 +169,44 @@
     }
   }
 
+  function isDark() {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
   function colors() {
-    var dark = document.documentElement.getAttribute("data-theme") === "dark";
-    if (dark) {
+    if (isDark()) {
       return {
-        skyTop: "#17191d",
-        sky: "#12110f",
-        hillFar: "#1e1c19",
-        hillNear: "#2a2622",
-        dirt: "#4a4036",
-        dirtDeep: "#2a241e",
-        grass: "#9ecbb4",
-        ink: "#f3efe6",
-        frame: "#f3efe6",
-        tire: "#0c0b0a",
-        tireEdge: "#f3efe6",
-        hub: "#d5c4a1",
-        accent: "#b7d7c6",
-        dust: "#6b5c4c"
+        skyTop: "#242424",
+        sky: "#1c1c1c",
+        hillFar: "#242424",
+        hillNear: "#2a2a2a",
+        dirt: "#5c4a38",
+        dirtDeep: "#2c241c",
+        grass: "#e4c07a",
+        ink: "#e6e6e6",
+        frame: "#e6e6e6",
+        tire: "#0e0e0e",
+        tireEdge: "#e6e6e6",
+        hub: "#e4c07a",
+        accent: "#9ecbff",
+        dust: "#6a5c4e"
       };
     }
     return {
-      skyTop: "#d7e6f4",
-      sky: "#f4f0e7",
-      hillFar: "#e6ddd0",
-      hillNear: "#d3c6b4",
-      dirt: "#6e5846",
-      dirtDeep: "#3e3228",
-      grass: "#1c5c43",
-      ink: "#1b1814",
-      frame: "#1b1814",
+      skyTop: "#efeae2",
+      sky: "#f4f1ea",
+      hillFar: "#e3ddd3",
+      hillNear: "#d5cfc4",
+      dirt: "#6b5344",
+      dirtDeep: "#241f1a",
+      grass: "#8a5410",
+      ink: "#241f1a",
+      frame: "#241f1a",
       tire: "#ffffff",
-      tireEdge: "#1b1814",
-      hub: "#1b1814",
-      accent: "#1c5c43",
-      dust: "#8a7362"
+      tireEdge: "#241f1a",
+      hub: "#241f1a",
+      accent: "#1a4f86",
+      dust: "#a89888"
     };
   }
 
@@ -513,7 +516,7 @@
   }
 
   function formatTime(t) {
-    if (t == null || !isFinite(t)) return "\u2014";
+    if (t == null || !isFinite(t)) return "none";
     var m = Math.floor(t / 60);
     var s = t - m * 60;
     var whole = Math.floor(s);
@@ -787,7 +790,7 @@
     ctx.closePath();
     ctx.fill();
     ctx.fillStyle = palette.ink;
-    ctx.font = "600 14px Fraunces, Georgia, serif";
+    ctx.font = "600 14px ui-monospace, Menlo, Consolas, monospace";
     ctx.textAlign = "center";
     ctx.fillText(label, sx(x), sy(y) - 74);
   }

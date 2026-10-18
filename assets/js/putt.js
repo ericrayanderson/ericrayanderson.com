@@ -69,31 +69,36 @@
   var last = 0;
   var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  function isDark() {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
   function colors() {
-    var dark = document.documentElement.getAttribute("data-theme") === "dark";
-    if (dark) {
+    if (isDark()) {
       return {
-        sky: "#12110f",
-        green: "#1a2822",
-        wall: "#2e2c28",
-        edge: "#b7d7c6",
-        ball: "#f3efe6",
-        ballLine: "#1b1814",
-        cup: "#0c0e0d",
-        flag: "#d7ebe3",
-        aim: "#b7d7c6"
+        sky: "#1c1c1c",
+        green: "#24302a",
+        wall: "#3a3a3a",
+        edge: "#e4c07a",
+        ball: "#e6e6e6",
+        ballLine: "#1c1c1c",
+        cup: "#101010",
+        flag: "#e4c07a",
+        aim: "#9ecbff",
+        shadow: "rgba(0, 0, 0, 0.35)"
       };
     }
     return {
-      sky: "#f4f0e7",
-      green: "#e4efe6",
-      wall: "#1b1814",
-      edge: "#1c5c43",
-      ball: "#fbf8f2",
-      ballLine: "#1b1814",
-      cup: "#14211c",
-      flag: "#1c5c43",
-      aim: "#1c5c43"
+      sky: "#f4f1ea",
+      green: "#e4ebe3",
+      wall: "#241f1a",
+      edge: "#8a5410",
+      ball: "#fffcf8",
+      ballLine: "#241f1a",
+      cup: "#241f1a",
+      flag: "#8a5410",
+      aim: "#1a4f86",
+      shadow: "rgba(36, 31, 26, 0.16)"
     };
   }
 
@@ -389,7 +394,7 @@
     }
 
     var bob = phase === "play" && speed() < 20 && !reducedMotion ? Math.sin(last / 280) * 0.6 : 0;
-    ctx.fillStyle = "rgba(27, 24, 20, 0.18)";
+    ctx.fillStyle = palette.shadow;
     ctx.beginPath();
     ctx.ellipse(ball.x + 2, ball.y + 5, RAD * 0.85, RAD * 0.45, 0, 0, Math.PI * 2);
     ctx.fill();
