@@ -177,6 +177,29 @@
     addNode(wrap);
   }
 
+  var aliases = {
+    help: "help",
+    "?": "help",
+    man: "help",
+    about: "about",
+    who: "about",
+    whoami: "about",
+    projects: "projects",
+    project: "projects",
+    games: "games",
+    game: "games",
+    contact: "contact",
+    email: "contact",
+    mail: "contact",
+    github: "github",
+    gh: "github",
+    clear: "clear",
+    cls: "clear",
+    play: "play",
+    ls: "ls",
+    dir: "ls"
+  };
+
   function helpText() {
     return [
       "help()       these commands",
@@ -187,8 +210,31 @@
       "             dirtbike, learning",
       "contact()    email",
       "github()     open GitHub",
-      "clear()      clear the screen"
+      "clear()      clear the screen",
+      "",
+      "Words or calls both work, any case.",
+      "Try projects, ls, cd games, or ?."
     ].join("\n");
+  }
+
+  function clean(value) {
+    return String(value || "").toLowerCase().replace(/^\s+|\s+$/g, "").replace(/\s+/g, " ");
+  }
+
+  function gameKey(value) {
+    var key = clean(value).replace(/[\s_-]+/g, "");
+    if (key === "helicopter" || key === "heli" || key === "copter") return "helicopter";
+    if (key === "putt" || key === "miniputt" || key === "golf" || key === "minigolf") return "putt";
+    if (key === "dirtbike" || key === "dirt" || key === "dirttrail" || key === "bike" || key === "trail") return "dirtbike";
+    if (key === "learning" || key === "learningterminal" || key === "terminal" || key === "learn") return "learning";
+    return "";
+  }
+
+  function commandName(value) {
+    var key = clean(value).replace(/[()]/g, "");
+    if (aliases[key]) return aliases[key];
+    if (gameKey(key)) return "play";
+    return "";
   }
 
   function dist(a, b) {
@@ -210,24 +256,191 @@
   }
 
   function suggest(raw) {
-    var token = raw.toLowerCase().replace(/\(.*$/, "").replace(/[^a-z]/g, "");
-    if (!token) return "help";
-    var best = commands[0];
-    var bestD = dist(token, best);
-    var i;
-    for (i = 1; i < commands.length; i++) {
-      var score = dist(token, commands[i]);
-      if (score < bestD) {
-        best = commands[i];
-        bestD = score;
-      }
-    }
+    var token = clean(raw).replace(/\(.*$/, "").replace(/[^a-z]/g, "");
+    if (!token) return "help()";
+    if (token === "cd") return "cd games";
     if (token.indexOf("heli") === 0 || token === "copter") return "play(\"helicopter\")";
     if (token === "putt" || token === "golf") return "play(\"putt\")";
     if (token.indexOf("dirt") === 0 || token === "bike") return "play(\"dirtbike\")";
     if (token.indexOf("learn") === 0 || token === "terminal") return "play(\"learning\")";
+    var names = ["help", "about", "projects", "games", "play", "contact", "github", "clear", "ls"];
+    var best = names[0];
+    var bestD = dist(token, best);
+    var i;
+    for (i = 1; i < names.length; i++) {
+      var score = dist(token, names[i]);
+      if (score < bestD) {
+        best = names[i];
+        bestD = score;
+      }
+    }
     if (best === "play") return "play(\"helicopter\")";
+    if (best === "ls") return "ls";
     return best + "()";
+  }
+
+  function parse(raw) {
+    var s = clean(raw);
+    if (!s) return null;
+    if (s === "?" || s === "??") return { cmd: "help" };
+
+    var asked = s.match(/^\?\s*([a-z][a-z0-9.]*)\s*(?:\(\s*\))?$/);
+    if (asked) return { cmd: "help" };
+
+    var called = s.match(/^([a-z?][a-z0-9.]*)\s*\(\s*["']?([^"']*?)["']?\s*\)$/);
+    if (called) {
+      var calledName = commandName(called[1]);
+      var calledArg = clean(called[2]);
+      if (calledName === "play") return { cmd: "play", arg: calledArg };
+      if (calledArg && (calledName === "ls" || called[1] === "cd" || called[1] === "open" || called[1] === "show")) {
+        return { cmd: calledName === "ls" ? "ls" : "cd", arg: calledArg };
+      }
+      if (calledName && !calledArg) return { cmd: calledName };
+    }
+
+    var played = s.match(/^play\s+(.+)$/);
+    if (played) return { cmd: "play", arg: clean(played[1]) };
+
+    var headed = s.match(/^(cd|ls|dir|open|show)\s+(.+)$/);
+    if (headed) {
+      var head = headed[1] === "ls" || headed[1] === "dir" ? "ls" : "cd";
+      return { cmd: head, arg: clean(headed[2]) };
+    }
+
+    if (s === "cd") return { cmd: "cd", arg: "" };
+    if (s === "ls" || s === "dir") return { cmd: "ls", arg: "" };
+
+    var bare = s.match(/^([a-z?][a-z0-9.]*)\s*(?:\(\s*\))?$/);
+    if (!bare) return null;
+    var name = commandName(bare[1]);
+    if (name === "play" && gameKey(bare[1])) return { cmd: "play", arg: bare[1] };
+    if (name) return { cmd: name };
+    return null;
+  }
+
+  function showAbout() {
+    addLine("Eric Anderson, Wake Forest, NC. A personal site with projects and tools. He works in R with the tidyverse and Shiny, and wrote shinymaterial and shinyglass.");
+  }
+
+  function showProjects() {
+    tibble(3, 3, [
+      {
+        name: "Learning Games",
+        what: "Phonics, typing, spelling, and number games for kids.",
+        where: "projects",
+        href: "../../projects.html#learning-games"
+      },
+      {
+        name: "shinymaterial",
+        what: "Material Design components for Shiny.",
+        where: "CRAN",
+        href: "https://cran.r-project.org/package=shinymaterial"
+      },
+      {
+        name: "shinyglass",
+        what: "Liquid glass themes for Shiny.",
+        where: "CRAN",
+        href: "https://cran.r-project.org/package=shinyglass"
+      }
+    ]);
+  }
+
+  function showGames() {
+    tibble(4, 3, [
+      {
+        name: "Helicopter",
+        what: "Fly a cave. Hold to climb, release to drop.",
+        where: "play",
+        href: games.helicopter.href
+      },
+      {
+        name: "Mini putt",
+        what: "Three holes of miniature golf. Drag to aim, then release to putt.",
+        where: "play",
+        href: games.putt.href
+      },
+      {
+        name: "Dirt Trail",
+        what: "Ride three short courses. Accelerate, brake, and lean.",
+        where: "play",
+        href: games.dirtbike.href
+      },
+      {
+        name: "Learning Terminal",
+        what: "Phonics, typing, spelling, and number games for kids.",
+        where: "play",
+        href: games.learning.href
+      }
+    ]);
+  }
+
+  function showContact() {
+    var p = document.createElement("p");
+    p.className = "out";
+    p.appendChild(document.createTextNode("Email "));
+    p.appendChild(link("mailto:eric.ray.anderson@gmail.com", "eric.ray.anderson@gmail.com"));
+    addNode(p);
+  }
+
+  function openGithub() {
+    addLine("Opening GitHub.");
+    window.location.href = "https://github.com/ericrayanderson";
+  }
+
+  function openGame(key) {
+    var game = games[key];
+    if (!game) {
+      addLine("Did you mean play(\"helicopter\")?");
+      return;
+    }
+    addLine("Opening " + game.label + ".");
+    window.location.href = game.href;
+  }
+
+  function showLs(arg) {
+    if (!arg) {
+      addLine([
+        "projects   games and R packages",
+        "games      browser games",
+        "about      a short note",
+        "contact    email",
+        "github     GitHub"
+      ].join("\n"));
+      return;
+    }
+    var key = gameKey(arg);
+    if (key) {
+      addLine("play(\"" + key + "\") opens " + games[key].label + ".");
+      return;
+    }
+    var name = commandName(arg);
+    if (name === "projects") return showProjects();
+    if (name === "games") return showGames();
+    if (name === "about") return showAbout();
+    if (name === "contact") return showContact();
+    if (name === "help") return addLine(helpText());
+    if (name === "github") {
+      addLine("github() opens GitHub.");
+      return;
+    }
+    addLine("Did you mean ls, or cd games?");
+  }
+
+  function go(arg) {
+    if (!arg || arg === ".." || arg === "~" || arg === "home" || arg === "/") {
+      addLine("You are already home. Try cd projects or cd games.");
+      return;
+    }
+    var key = gameKey(arg);
+    if (key) return openGame(key);
+    var name = commandName(arg);
+    if (name === "projects") return showProjects();
+    if (name === "games") return showGames();
+    if (name === "about") return showAbout();
+    if (name === "contact") return showContact();
+    if (name === "github") return openGithub();
+    if (name === "help") return addLine(helpText());
+    addLine("Did you mean cd games?");
   }
 
   function run(command) {
@@ -239,108 +452,30 @@
     echo(trimmed);
     input.value = "";
 
-    var play = trimmed.match(/^play\s*\(\s*["']([^"']+)["']\s*\)$/i);
-    var call = trimmed.match(/^([a-zA-Z.][a-zA-Z0-9.]*)\s*\(\s*\)$/);
-
-    if (play) {
-      var key = play[1].toLowerCase().replace(/\s+/g, "");
-      if (key === "learningterminal" || key === "learning-terminal") key = "learning";
-      var game = games[key];
-      if (!game) {
-        addLine("Did you mean play(\"helicopter\")?");
-        return;
-      }
-      addLine("Opening " + game.label + ".");
-      window.location.href = game.href;
-      return;
-    }
-
-    if (!call) {
+    var parsed = parse(trimmed);
+    if (!parsed) {
       addLine("Did you mean " + suggest(trimmed) + "?");
       return;
     }
-
-    var name = call[1].toLowerCase();
-    if (name === "help") {
-      addLine(helpText());
-      return;
-    }
-    if (name === "about") {
-      addLine("Eric Anderson, Wake Forest, NC. A personal site with projects and tools. He works in R with the tidyverse and Shiny, and wrote shinymaterial and shinyglass.");
-      return;
-    }
-    if (name === "projects") {
-      tibble(3, 3, [
-        {
-          name: "Learning Games",
-          what: "Phonics, typing, spelling, and number games for kids.",
-          where: "projects",
-          href: "../../projects.html#learning-games"
-        },
-        {
-          name: "shinymaterial",
-          what: "Material Design components for Shiny.",
-          where: "CRAN",
-          href: "https://cran.r-project.org/package=shinymaterial"
-        },
-        {
-          name: "shinyglass",
-          what: "Liquid glass themes for Shiny.",
-          where: "CRAN",
-          href: "https://cran.r-project.org/package=shinyglass"
-        }
-      ]);
-      return;
-    }
-    if (name === "games") {
-      tibble(4, 3, [
-        {
-          name: "Helicopter",
-          what: "Fly a cave. Hold to climb, release to drop.",
-          where: "play",
-          href: games.helicopter.href
-        },
-        {
-          name: "Mini putt",
-          what: "Three holes of miniature golf. Drag to aim, then release to putt.",
-          where: "play",
-          href: games.putt.href
-        },
-        {
-          name: "Dirt Trail",
-          what: "Ride three short courses. Accelerate, brake, and lean.",
-          where: "play",
-          href: games.dirtbike.href
-        },
-        {
-          name: "Learning Terminal",
-          what: "Phonics, typing, spelling, and number games for kids.",
-          where: "play",
-          href: games.learning.href
-        }
-      ]);
-      return;
-    }
-    if (name === "contact") {
-      var p = document.createElement("p");
-      p.className = "out";
-      p.appendChild(document.createTextNode("Email "));
-      p.appendChild(link("mailto:eric.ray.anderson@gmail.com", "eric.ray.anderson@gmail.com"));
-      addNode(p);
-      return;
-    }
-    if (name === "github") {
-      addLine("Opening GitHub.");
-      window.location.href = "https://github.com/ericrayanderson";
-      return;
-    }
-    if (name === "clear") {
+    if (parsed.cmd === "help") return addLine(helpText());
+    if (parsed.cmd === "about") return showAbout();
+    if (parsed.cmd === "projects") return showProjects();
+    if (parsed.cmd === "games") return showGames();
+    if (parsed.cmd === "contact") return showContact();
+    if (parsed.cmd === "github") return openGithub();
+    if (parsed.cmd === "clear") {
       log.textContent = "";
       return;
     }
-    if (name === "play") {
-      addLine("Did you mean play(\"helicopter\")?");
-      return;
+    if (parsed.cmd === "ls") return showLs(parsed.arg || "");
+    if (parsed.cmd === "cd") return go(parsed.arg || "");
+    if (parsed.cmd === "play") {
+      var key = gameKey(parsed.arg);
+      if (!key) {
+        addLine("Did you mean play(\"helicopter\")?");
+        return;
+      }
+      return openGame(key);
     }
     addLine("Did you mean " + suggest(trimmed) + "?");
   }
