@@ -18,6 +18,7 @@
   var draft = "";
   var tabMatches = [];
   var tabIndex = 0;
+  var tabPrefix = "";
 
   var games = {
     helicopter: { href: "../../helicopter.html", label: "Helicopter" },
@@ -70,6 +71,11 @@
   }
 
   async function typeText(node, text) {
+    if (!text) {
+      node.textContent = "\u00a0";
+      scrollLog();
+      return;
+    }
     node.textContent = "";
     if (reduced) {
       node.textContent = text;
@@ -173,14 +179,15 @@
 
   function helpText() {
     return [
-      "help()            show these commands",
-      "about()           a short note",
-      "projects()        learning games and R packages",
-      "games()           browser games",
-      "play(\"name\")      helicopter, putt, dirtbike, or learning",
-      "contact()         email",
-      "github()          open GitHub",
-      "clear()           clear the screen"
+      "help()       these commands",
+      "about()      a short note",
+      "projects()   games and R packages",
+      "games()      browser games",
+      "play(\"name\") helicopter, putt,",
+      "             dirtbike, learning",
+      "contact()    email",
+      "github()     open GitHub",
+      "clear()      clear the screen"
     ].join("\n");
   }
 
@@ -376,6 +383,8 @@
     if (event.key === "Tab") {
       event.preventDefault();
       var current = input.value;
+      var continuing = tabMatches.length > 0 && current === tabMatches[tabIndex];
+      var prefix = continuing ? tabPrefix : current;
       var matches = [];
       var pool = commands.map(function (name) {
         return name === "play" ? "play(\"helicopter\")" : name + "()";
@@ -385,16 +394,17 @@
       });
       var i;
       for (i = 0; i < pool.length; i++) {
-        if (pool[i].toLowerCase().indexOf(current.toLowerCase()) === 0) matches.push(pool[i]);
+        if (pool[i].toLowerCase().indexOf(prefix.toLowerCase()) === 0) matches.push(pool[i]);
       }
       if (!matches.length) return;
-      var same = matches.join("|") === tabMatches.join("|");
+      tabPrefix = prefix;
       tabMatches = matches;
-      tabIndex = same ? (tabIndex + 1) % matches.length : 0;
-      input.value = matches.length === 1 ? matches[0] : matches[tabIndex];
+      tabIndex = continuing ? (tabIndex + 1) % matches.length : 0;
+      input.value = matches[tabIndex];
       return;
     }
     tabMatches = [];
+    tabPrefix = "";
     if (event.key === "ArrowUp") {
       event.preventDefault();
       if (!history.length) return;
