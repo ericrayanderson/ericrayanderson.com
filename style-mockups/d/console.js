@@ -213,9 +213,57 @@
       "clear()      clear the screen",
       "",
       "Words or calls both work, any case.",
-      "Try projects, ls, cd games, or ?."
+      "Try projects, ls, cd games, or ?.",
+      "Phrases work too: show me projects."
     ].join("\n");
   }
+
+  var stops = {
+    a: 1, an: 1, the: 1, me: 1, my: 1, to: 1, do: 1, i: 1, how: 1, please: 1,
+    can: 1, you: 1, your: 1, show: 1, tell: 1, give: 1, what: 1, whats: 1,
+    where: 1, is: 1, are: 1, of: 1, for: 1, want: 1, see: 1, get: 1, some: 1,
+    info: 1, information: 1, just: 1, let: 1, lets: 1, would: 1, like: 1,
+    could: 1, should: 1, on: 1, in: 1, and: 1, or: 1, with: 1, this: 1, that: 1,
+    page: 1, site: 1, address: 1
+  };
+
+  var phraseWords = {
+    projects: "projects",
+    project: "projects",
+    package: "projects",
+    packages: "projects",
+    shiny: "projects",
+    cran: "projects",
+    games: "games",
+    game: "games",
+    play: "play",
+    playing: "play",
+    contact: "contact",
+    email: "contact",
+    mail: "contact",
+    github: "github",
+    about: "about",
+    who: "about",
+    help: "help",
+    clear: "clear",
+    cls: "clear",
+    reset: "clear",
+    ls: "ls"
+  };
+
+  var chipCmds = [
+    "help()",
+    "about()",
+    "projects()",
+    "games()",
+    "play(\"helicopter\")",
+    "play(\"putt\")",
+    "play(\"dirtbike\")",
+    "play(\"learning\")",
+    "contact()",
+    "github()",
+    "clear()"
+  ];
 
   function clean(value) {
     return String(value || "").toLowerCase().replace(/^\s+|\s+$/g, "").replace(/\s+/g, " ");
@@ -255,28 +303,94 @@
     return d[s][t];
   }
 
-  function suggest(raw) {
-    var token = clean(raw).replace(/\(.*$/, "").replace(/[^a-z]/g, "");
-    if (!token) return "help()";
-    if (token === "cd") return "cd games";
-    if (token.indexOf("heli") === 0 || token === "copter") return "play(\"helicopter\")";
-    if (token === "putt" || token === "golf") return "play(\"putt\")";
-    if (token.indexOf("dirt") === 0 || token === "bike") return "play(\"dirtbike\")";
-    if (token.indexOf("learn") === 0 || token === "terminal") return "play(\"learning\")";
-    var names = ["help", "about", "projects", "games", "play", "contact", "github", "clear", "ls"];
-    var best = names[0];
-    var bestD = dist(token, best);
+  function keywords(text) {
+    var words = clean(text).split(/[^a-z0-9]+/).filter(Boolean);
+    var game = "";
+    var hits = [];
     var i;
-    for (i = 1; i < names.length; i++) {
-      var score = dist(token, names[i]);
-      if (score < bestD) {
-        best = names[i];
-        bestD = score;
+    for (i = 0; i < words.length; i++) {
+      if (stops[words[i]]) continue;
+      var found = gameKey(words[i]);
+      if (found) {
+        game = found;
+        continue;
+      }
+      if (phraseWords[words[i]]) hits.push(phraseWords[words[i]]);
+    }
+    if (game) return { cmd: "play", arg: game };
+    if (!hits.length) return null;
+    var has = {};
+    hits.forEach(function (hit) { has[hit] = true; });
+    if (has.play && !has.projects && !has.games && !has.contact && !has.github && !has.about && !has.clear && !has.help) {
+      return { cmd: "games" };
+    }
+    var order = ["projects", "games", "contact", "github", "about", "clear", "help", "ls", "play"];
+    for (i = 0; i < order.length; i++) {
+      if (has[order[i]]) return { cmd: order[i] };
+    }
+    return null;
+  }
+
+  function suggest(raw) {
+    var words = clean(raw).split(/[^a-z0-9]+/).filter(function (word) {
+      return word && !stops[word];
+    });
+    if (!words.length) return "help()";
+    var names = ["help", "about", "projects", "games", "play", "contact", "github", "clear", "ls"];
+    var best = "help()";
+    var bestD = 3;
+    var w, i, token, score, label;
+    for (w = 0; w < words.length; w++) {
+      token = words[w];
+      if (token === "cd") {
+        if (bestD > 2) {
+          best = "cd games";
+          bestD = 2;
+        }
+        continue;
+      }
+      if (token.indexOf("heli") === 0 || token === "copter" || token.indexOf("dirt") === 0 || token === "bike" || token.indexOf("learn") === 0 || token === "terminal" || token === "putt" || token === "golf") {
+        var hinted = gameKey(token);
+        if (!hinted && (token.indexOf("heli") === 0 || token === "copter")) hinted = "helicopter";
+        if (!hinted && token.indexOf("dirt") === 0) hinted = "dirtbike";
+        if (!hinted && (token.indexOf("learn") === 0 || token === "terminal")) hinted = "learning";
+        if (!hinted && (token === "putt" || token === "golf")) hinted = "putt";
+        if (hinted && bestD > 1) {
+          best = "play(\"" + hinted + "\")";
+          bestD = 1;
+        }
+        continue;
+      }
+      for (i = 0; i < names.length; i++) {
+        score = dist(token, names[i]);
+        if (score < bestD) {
+          bestD = score;
+          label = names[i];
+          best = label === "play" ? "play(\"helicopter\")" : label === "ls" ? "ls" : label + "()";
+        }
       }
     }
-    if (best === "play") return "play(\"helicopter\")";
-    if (best === "ls") return "ls";
-    return best + "()";
+    return best;
+  }
+
+  function showSuggestion(hint) {
+    var wrap = document.createElement("div");
+    wrap.className = "suggest";
+    var p = document.createElement("p");
+    p.className = "out";
+    p.textContent = "Did you mean " + hint + "?";
+    wrap.appendChild(p);
+    var row = document.createElement("div");
+    row.className = "chips";
+    chipCmds.forEach(function (cmd) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.setAttribute("data-cmd", cmd);
+      button.textContent = cmd;
+      row.appendChild(button);
+    });
+    wrap.appendChild(row);
+    addNode(wrap);
   }
 
   function parse(raw) {
@@ -303,19 +417,23 @@
 
     var headed = s.match(/^(cd|ls|dir|open|show)\s+(.+)$/);
     if (headed) {
-      var head = headed[1] === "ls" || headed[1] === "dir" ? "ls" : "cd";
-      return { cmd: head, arg: clean(headed[2]) };
+      if (headed[1] === "ls" || headed[1] === "dir") return { cmd: "ls", arg: clean(headed[2]) };
+      if (headed[1] === "cd") return { cmd: "cd", arg: clean(headed[2]) };
+      var fromTail = keywords(headed[2]);
+      if (fromTail) return fromTail;
+      return { cmd: "cd", arg: clean(headed[2]) };
     }
 
     if (s === "cd") return { cmd: "cd", arg: "" };
     if (s === "ls" || s === "dir") return { cmd: "ls", arg: "" };
 
     var bare = s.match(/^([a-z?][a-z0-9.]*)\s*(?:\(\s*\))?$/);
-    if (!bare) return null;
-    var name = commandName(bare[1]);
-    if (name === "play" && gameKey(bare[1])) return { cmd: "play", arg: bare[1] };
-    if (name) return { cmd: name };
-    return null;
+    if (bare) {
+      var name = commandName(bare[1]);
+      if (name === "play" && gameKey(bare[1])) return { cmd: "play", arg: bare[1] };
+      if (name) return { cmd: name };
+    }
+    return keywords(s);
   }
 
   function showAbout() {
@@ -390,7 +508,7 @@
   function openGame(key) {
     var game = games[key];
     if (!game) {
-      addLine("Did you mean play(\"helicopter\")?");
+      showSuggestion("play(\"helicopter\")");
       return;
     }
     addLine("Opening " + game.label + ".");
@@ -423,7 +541,7 @@
       addLine("github() opens GitHub.");
       return;
     }
-    addLine("Did you mean ls, or cd games?");
+    showSuggestion("cd games");
   }
 
   function go(arg) {
@@ -440,7 +558,7 @@
     if (name === "contact") return showContact();
     if (name === "github") return openGithub();
     if (name === "help") return addLine(helpText());
-    addLine("Did you mean cd games?");
+    showSuggestion("cd games");
   }
 
   function run(command) {
@@ -454,7 +572,7 @@
 
     var parsed = parse(trimmed);
     if (!parsed) {
-      addLine("Did you mean " + suggest(trimmed) + "?");
+      showSuggestion(suggest(trimmed));
       return;
     }
     if (parsed.cmd === "help") return addLine(helpText());
@@ -472,12 +590,12 @@
     if (parsed.cmd === "play") {
       var key = gameKey(parsed.arg);
       if (!key) {
-        addLine("Did you mean play(\"helicopter\")?");
+        showSuggestion("play(\"helicopter\")");
         return;
       }
       return openGame(key);
     }
-    addLine("Did you mean " + suggest(trimmed) + "?");
+    showSuggestion(suggest(trimmed));
   }
 
   async function typeAndRun(command) {
@@ -556,16 +674,14 @@
     }
   });
 
-  var chips = document.querySelectorAll("[data-cmd]");
-  var c;
-  for (c = 0; c < chips.length; c++) {
-    chips[c].addEventListener("click", function (event) {
-      var cmd = event.currentTarget.getAttribute("data-cmd");
-      if (busy || !cmd) return;
-      lockPrompt();
-      typeAndRun(cmd);
-    });
-  }
+  consoleEl.addEventListener("click", function (event) {
+    var button = event.target.closest("button[data-cmd]");
+    if (!button || busy) return;
+    var cmd = button.getAttribute("data-cmd");
+    if (!cmd) return;
+    lockPrompt();
+    typeAndRun(cmd);
+  });
 
   if (themeBtn) {
     themeBtn.hidden = false;

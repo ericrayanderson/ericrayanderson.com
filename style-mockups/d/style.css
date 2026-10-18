@@ -165,6 +165,12 @@ a { color: var(--link); }
   margin-top: 0.45rem;
 }
 
+.suggest { margin: 0.2rem 0 0.35rem; }
+
+.suggest .out { margin: 0; }
+
+.suggest .chips { margin-top: 0.4rem; }
+
 .chips button {
   appearance: none;
   min-height: 2.75rem;
