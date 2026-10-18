@@ -127,26 +127,27 @@
   }
 
   function formatGravity(scale) {
-    var shown = Math.round(scale * 10) / 10;
-    return shown.toFixed(1).replace(/\.0$/, "") + "x";
+    var shown = Math.round(scale * 20) / 20;
+    var text = shown.toFixed(2).replace(/0$/, "").replace(/\.0$/, "");
+    return text + "x";
   }
 
   function readGravity() {
     try {
       var raw = parseFloat(localStorage.getItem(GRAVITY_KEY));
-      if (isFinite(raw)) return clamp(Math.round(raw * 10) / 10, 0.5, 2);
+      if (isFinite(raw)) return clamp(Math.round(raw * 20) / 20, 0.1, 2);
     } catch (error) {
       /* Storage can be blocked. The slider still works for this visit. */
     }
     return 1;
   }
 
-  function applyGravity(scale, persist) {
-    gravityScale = clamp(Math.round(scale * 10) / 10, 0.5, 2);
+  function applyGravity(scale, persist, writeControl) {
+    gravityScale = clamp(Math.round(Number(scale) * 20) / 20, 0.1, 2);
     var label = formatGravity(gravityScale);
     if (gravityValue) gravityValue.textContent = label;
     if (gravityInput) {
-      gravityInput.value = String(gravityScale);
+      if (writeControl) gravityInput.value = String(gravityScale);
       gravityInput.setAttribute("aria-valuenow", String(gravityScale));
       gravityInput.setAttribute("aria-valuetext", label);
     }
@@ -1057,14 +1058,22 @@
 
   function onGravityInput() {
     if (!gravityInput) return;
-    applyGravity(parseFloat(gravityInput.value), true);
+    applyGravity(gravityInput.value, true, false);
+  }
+
+  function leaveSliderAlone(event) {
+    event.stopPropagation();
   }
 
   if (gravityInput) {
     gravityInput.addEventListener("input", onGravityInput);
     gravityInput.addEventListener("change", onGravityInput);
+    gravityInput.addEventListener("pointerdown", leaveSliderAlone);
+    gravityInput.addEventListener("pointermove", leaveSliderAlone);
+    gravityInput.addEventListener("touchstart", leaveSliderAlone, { passive: true });
+    gravityInput.addEventListener("touchmove", leaveSliderAlone, { passive: true });
   }
-  applyGravity(readGravity(), false);
+  applyGravity(readGravity(), false, true);
 
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
