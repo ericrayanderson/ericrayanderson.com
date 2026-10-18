@@ -137,7 +137,7 @@ a { color: var(--link); }
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: calc(4.25rem + env(safe-area-inset-top)) 1.25rem 1.5rem;
+  padding: calc(4.25rem + env(safe-area-inset-top)) 1.25rem calc(2rem + env(safe-area-inset-bottom));
   padding-left: max(1.25rem, env(safe-area-inset-left));
   padding-right: max(1.25rem, env(safe-area-inset-right));
 }
@@ -150,13 +150,13 @@ a { color: var(--link); }
 }
 
 .hello p {
-  margin: 0.2rem 0 0;
+  margin: 0.35rem 0 0;
   color: var(--muted);
 }
 
-.hello .hint { margin-top: 1.25rem; }
+.hello .chips { margin-top: 1.35rem; }
 
-.entry { margin-top: 2rem; }
+.entry { margin-top: 1.75rem; }
 
 .echo {
   margin: 0 0 0.85rem;
@@ -197,15 +197,6 @@ a { color: var(--link); }
   font-size: 0.92rem;
 }
 
-.dock {
-  flex: none;
-  border-top: 1px solid var(--line);
-  background: var(--bg);
-  padding: 0.85rem 1.1rem calc(1rem + env(safe-area-inset-bottom));
-  padding-left: max(1.1rem, env(safe-area-inset-left));
-  padding-right: max(1.1rem, env(safe-area-inset-right));
-}
-
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -228,6 +219,12 @@ a { color: var(--link); }
 
 .chips button:hover,
 .chips button:focus-visible { border-color: var(--prompt); }
+
+.chips button[aria-pressed="true"] {
+  border-color: var(--prompt);
+  color: var(--prompt);
+  background: transparent;
+}
 
 #normal-view {
   max-width: 40rem;
@@ -270,9 +267,18 @@ html.is-console #normal-view {
   border: 0;
 }
 
+@media (max-width: 520px) {
+  .chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (min-width: 860px) {
-  .log, .dock {
+  .log {
     width: min(40rem, 100%);
     margin-inline: auto;
   }
+
+  .chips { flex-wrap: nowrap; }
 }

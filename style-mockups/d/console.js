@@ -75,7 +75,13 @@
 
   function print(name) {
     var spec = commands[name];
-    if (!spec) return;
+    var out = document.getElementById("out");
+    if (!spec || !out) return;
+    var buttons = consoleEl.querySelectorAll("button[data-cmd]");
+    var i;
+    for (i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute("aria-pressed", buttons[i].getAttribute("data-cmd") === name ? "true" : "false");
+    }
     var block = document.createElement("section");
     block.className = "entry";
 
@@ -85,7 +91,7 @@
     gt.className = "gt";
     gt.textContent = "eric>";
     echo.appendChild(gt);
-    echo.appendChild(document.createTextNode(spec.line));
+    echo.appendChild(document.createTextNode(" " + spec.line));
     block.appendChild(echo);
 
     var list = document.createElement("ul");
@@ -106,7 +112,7 @@
       list.appendChild(item);
     });
     block.appendChild(list);
-    log.appendChild(block);
+    out.replaceChildren(block);
     block.scrollIntoView({ block: "nearest" });
   }
 

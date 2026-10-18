@@ -31,16 +31,14 @@
       <header class="hello">
         <h1>Eric Anderson</h1>
         <p>Wake Forest, NC</p>
-        <p class="hint">Tap a command.</p>
+        <div class="chips" role="group" aria-label="Commands">
+          <button type="button" data-cmd="projects" aria-pressed="false">show projects</button>
+          <button type="button" data-cmd="games" aria-pressed="false">show games</button>
+          <button type="button" data-cmd="about" aria-pressed="false">about</button>
+          <button type="button" data-cmd="contact" aria-pressed="false">contact</button>
+        </div>
       </header>
-    </div>
-    <div class="dock">
-      <div class="chips" role="group" aria-label="Commands">
-        <button type="button" data-cmd="projects">show projects</button>
-        <button type="button" data-cmd="games">show games</button>
-        <button type="button" data-cmd="about">about</button>
-        <button type="button" data-cmd="contact">contact</button>
-      </div>
+      <div id="out"></div>
     </div>
   </div>
 
