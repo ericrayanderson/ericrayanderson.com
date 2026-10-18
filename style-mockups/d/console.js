@@ -2,16 +2,9 @@
   var root = document.documentElement;
   var consoleEl = document.getElementById("console");
   var log = document.getElementById("log");
-  var menuBtn = document.getElementById("menu-toggle");
-  var menu = document.getElementById("corner-menu");
   var viewBtn = document.getElementById("view-toggle");
-  var themeBtn = document.getElementById("theme-toggle");
-  var meta = document.getElementById("theme-color");
   var normal = document.getElementById("normal-view");
-  var corner = document.querySelector(".corner");
   if (!consoleEl || !log) return;
-
-  var colors = { dark: "#1c1c1c", light: "#f7f6f3" };
 
   var commands = {
     projects: {
@@ -46,12 +39,6 @@
     }
   };
 
-  function applyTheme(theme) {
-    root.setAttribute("data-theme", theme);
-    if (meta) meta.setAttribute("content", colors[theme]);
-    if (themeBtn) themeBtn.textContent = theme === "dark" ? "Light" : "Dark";
-  }
-
   function setConsoleMode(on) {
     root.classList.toggle("is-console", on);
     consoleEl.hidden = !on;
@@ -65,12 +52,6 @@
       if (on) links[i].setAttribute("tabindex", "-1");
       else links[i].removeAttribute("tabindex");
     }
-  }
-
-  function closeMenu() {
-    if (!menu || !menuBtn) return;
-    menu.hidden = true;
-    menuBtn.setAttribute("aria-expanded", "false");
   }
 
   function print(name) {
@@ -122,41 +103,12 @@
     print(button.getAttribute("data-cmd"));
   });
 
-  if (menuBtn && menu) {
-    menuBtn.hidden = false;
-    menuBtn.addEventListener("click", function () {
-      var open = menu.hidden;
-      menu.hidden = !open;
-      menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
-    });
-    document.addEventListener("click", function (event) {
-      if (corner && !corner.contains(event.target)) closeMenu();
-    });
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") closeMenu();
-    });
-  }
-
-  if (themeBtn) {
-    themeBtn.addEventListener("click", function () {
-      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      applyTheme(next);
-      try { localStorage.setItem("mockup-theme-d", next); } catch (error) {}
-      closeMenu();
-    });
-  }
-
   if (viewBtn) {
+    viewBtn.hidden = false;
     viewBtn.addEventListener("click", function () {
       setConsoleMode(!root.classList.contains("is-console"));
-      closeMenu();
     });
   }
-
-  try {
-    var stored = localStorage.getItem("mockup-theme-d");
-    if (stored === "light" || stored === "dark") applyTheme(stored);
-  } catch (error) {}
 
   setConsoleMode(true);
   root.setAttribute("data-booted", "1");

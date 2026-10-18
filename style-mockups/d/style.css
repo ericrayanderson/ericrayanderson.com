@@ -1,30 +1,33 @@
 /* D. A small clickable terminal. Dark and light, no R styling. */
 
-:root,
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #1c1c1c;
-  --fg: #e6e6e6;
-  --muted: #9a9a9a;
-  --prompt: #e4c07a;
-  --link: #9ecbff;
-  --line: #3a3a3a;
-  --chip: #2a2a2a;
-  --chip-text: #e6e6e6;
-  --theme: #1c1c1c;
+:root {
+  color-scheme: light;
+  --bg: #f4f1ea;
+  --fg: #241f1a;
+  --muted: #6a625a;
+  --prompt: #8a5410;
+  --link: #1a4f86;
+  --line: #e3ddd3;
+  --chip: #fffcf8;
+  --chip-text: #241f1a;
+  --chip-on: #f6efe2;
+  --theme: #f4f1ea;
 }
 
-[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f7f6f3;
-  --fg: #1c1c1c;
-  --muted: #5c5c5c;
-  --prompt: #8a5a12;
-  --link: #1d4e89;
-  --line: #ddd9d2;
-  --chip: #fff;
-  --chip-text: #1c1c1c;
-  --theme: #f7f6f3;
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #1c1c1c;
+    --fg: #e6e6e6;
+    --muted: #9a9a9a;
+    --prompt: #e4c07a;
+    --link: #9ecbff;
+    --line: #3a3a3a;
+    --chip: #2a2a2a;
+    --chip-text: #e6e6e6;
+    --chip-on: #2c2822;
+    --theme: #1c1c1c;
+  }
 }
 
 *,
@@ -70,58 +73,23 @@ a { color: var(--link); }
   z-index: 20;
 }
 
-.menu-btn {
+.view-link {
   appearance: none;
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
   border: 0;
-  border-radius: 999px;
   background: transparent;
   color: var(--muted);
-  cursor: pointer;
-}
-
-.menu-btn[aria-expanded="true"] {
-  background: var(--chip);
-  color: var(--fg);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-.menu-btn[hidden] { display: none; }
-
-.corner-menu {
-  position: absolute;
-  top: calc(100% + 0.35rem);
-  right: 0;
-  min-width: 10.5rem;
-  padding: 0.3rem;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-}
-
-.corner-menu[hidden] { display: none; }
-
-.corner-menu button {
-  appearance: none;
-  display: block;
-  width: 100%;
-  min-height: 2.75rem;
-  padding: 0.4rem 0.75rem;
-  border: 0;
-  background: transparent;
-  color: var(--fg);
   font: inherit;
-  font-size: 0.92rem;
-  text-align: left;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.1rem;
   cursor: pointer;
 }
 
-.corner-menu button:hover,
-.corner-menu button:focus-visible { background: var(--chip); }
+.view-link:hover,
+.view-link:focus-visible { color: var(--fg); }
+
+.view-link[hidden] { display: none; }
 
 .console {
   height: 100dvh;
@@ -223,7 +191,7 @@ a { color: var(--link); }
 .chips button[aria-pressed="true"] {
   border-color: var(--prompt);
   color: var(--prompt);
-  background: transparent;
+  background: var(--chip-on);
 }
 
 #normal-view {
