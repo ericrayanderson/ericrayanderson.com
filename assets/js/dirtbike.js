@@ -11,12 +11,15 @@
   var bestEl = document.getElementById("dirt-best");
   var live = document.getElementById("dirt-live");
   var pad = document.getElementById("ride-pad");
+  var gravityInput = document.getElementById("dirt-gravity");
+  var gravityValue = document.getElementById("dirt-gravity-value");
   if (!canvas || !canvas.getContext || !stage) return;
 
   var ctx = canvas.getContext("2d", { alpha: false });
   var W = 800;
   var H = 500;
   var BEST_KEY = "dirt-trail-bests";
+  var GRAVITY_KEY = "dirt-trail-gravity";
   var BASE = 408;
   var GRAVITY = 1700;
   var INERTIA = 2400;
@@ -103,6 +106,7 @@
   var waitRelease = false;
   var keys = { gas: false, brake: false, back: false, fwd: false };
   var touches = { gas: false, brake: false, back: false, fwd: false };
+  var gravityScale = 1;
   var bike = {
     x: 170,
     y: 280,
@@ -122,6 +126,38 @@
     bests = {};
   }
 
+  function formatGravity(scale) {
+    var shown = Math.round(scale * 10) / 10;
+    return shown.toFixed(1).replace(/\.0$/, "") + "x";
+  }
+
+  function readGravity() {
+    try {
+      var raw = parseFloat(localStorage.getItem(GRAVITY_KEY));
+      if (isFinite(raw)) return clamp(Math.round(raw * 10) / 10, 0.5, 2);
+    } catch (error) {
+      /* Storage can be blocked. The slider still works for this visit. */
+    }
+    return 1;
+  }
+
+  function applyGravity(scale, persist) {
+    gravityScale = clamp(Math.round(scale * 10) / 10, 0.5, 2);
+    var label = formatGravity(gravityScale);
+    if (gravityValue) gravityValue.textContent = label;
+    if (gravityInput) {
+      gravityInput.value = String(gravityScale);
+      gravityInput.setAttribute("aria-valuenow", String(gravityScale));
+      gravityInput.setAttribute("aria-valuetext", label);
+    }
+    if (!persist) return;
+    try {
+      localStorage.setItem(GRAVITY_KEY, String(gravityScale));
+    } catch (error) {
+      /* The choice still applies until the page is closed. */
+    }
+  }
+
   function colors() {
     var dark = document.documentElement.getAttribute("data-theme") === "dark";
     if (dark) {
@@ -136,6 +172,7 @@
         ink: "#f3efe6",
         frame: "#f3efe6",
         tire: "#0c0b0a",
+        tireEdge: "#f3efe6",
         hub: "#d5c4a1",
         accent: "#b7d7c6",
         dust: "#6b5c4c"
@@ -151,8 +188,9 @@
       grass: "#1c5c43",
       ink: "#1b1814",
       frame: "#1b1814",
-      tire: "#1b1814",
-      hub: "#f4f0e7",
+      tire: "#ffffff",
+      tireEdge: "#1b1814",
+      hub: "#1b1814",
       accent: "#1c5c43",
       dust: "#8a7362"
     };
@@ -318,10 +356,12 @@
     var axleVy = bike.vy + bike.angVel * rx;
     var vn = axleVx * g.nx + axleVy * g.ny;
     var vt = axleVx * g.tx + axleVy * g.ty;
+    var springK = SPRING * gravityScale;
+    var dampC = DAMP * Math.sqrt(gravityScale);
     var force = 0;
     if (compression > 0) {
-      force = compression * SPRING - vn * DAMP;
-      if (compression > 9) force += (compression - 9) * BUMP;
+      force = compression * springK - vn * dampC;
+      if (compression > 9) force += (compression - 9) * BUMP * gravityScale;
       if (force < 0) force = 0;
     }
     return {
@@ -332,7 +372,7 @@
       axle: axle,
       rx: rx,
       ry: ry,
-      load: compression * SPRING
+      load: compression * springK
     };
   }
 
@@ -351,7 +391,7 @@
     }
 
     var fx = 0;
-    var fy = GRAVITY;
+    var fy = GRAVITY * gravityScale;
     var torque = 0;
     var grounded = false;
     var contacts = [rear, front];
@@ -758,6 +798,9 @@
     ctx.beginPath();
     ctx.arc(0, 0, WHEEL_R, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = palette.tireEdge;
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
     ctx.strokeStyle = palette.hub;
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -1011,6 +1054,17 @@
   }
 
   if (actionBtn) actionBtn.addEventListener("click", primaryAction);
+
+  function onGravityInput() {
+    if (!gravityInput) return;
+    applyGravity(parseFloat(gravityInput.value), true);
+  }
+
+  if (gravityInput) {
+    gravityInput.addEventListener("input", onGravityInput);
+    gravityInput.addEventListener("change", onGravityInput);
+  }
+  applyGravity(readGravity(), false);
 
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
