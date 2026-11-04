@@ -9,7 +9,7 @@
   var live = document.getElementById("hoop-live");
 
   var W = 0, H = 0, S = 1;
-  var ANGLE = 58 * Math.PI / 180, minDeg = 35, maxDeg = 70, defDeg = 55, userDeg = null, spread = 0.38, center = 0.55, dragY = 0, dragDeg = 55;
+  var trial = false, ANGLE = 58 * Math.PI / 180, minDeg = 35, maxDeg = 70, defDeg = 55, spread = 0.38, center = 0.55;
   var wob = { y: 0, v: 0 };
   var net = [];
   var decidedAt = 0, made = 0, shots = 0, best = 0, totalMade = 0, ROUND = 10, roundEndAt = 0, rimTouch = 0;
@@ -19,7 +19,7 @@
   var state = "ready"; // ready, holding, flying, done
   var holdStart = 0, power = 0, vMin = 0, vMax = 0;
   var flightTime = 0, scored = false, lastMsg = "", msgUntil = 0;
-  window.__hoops = { get made() { return totalMade; }, get roundMade() { return made; }, get shots() { return shots; }, get best() { return best; }, get mode() { return state; }, place: function (b, h) { ballStart = b; hoopN = h; resetBall(); }, debugBall: function (x, y, vx, vy) { decidedAt = 0; rimTouch = 0; ball.x = x; ball.y = y; ball.vx = vx; ball.vy = vy; state = "flying"; flightTime = 0; scored = false; }, geo: function () { return geo(); }, newHoop: function () { newHoop(); resetBall(); }, stepOnce: function () { return step(1 / 600); }, spot: function () { return { b: ballStart, h: hoopN }; }, sim: function (p) { this.shoot(p); var n = 0; while (state === "flying" && n < 20000) { n++; if (step(1 / 600)) break; } return [scored, n / 600]; }, shoot: function (p) { if (state === "done") newRound(); state = "holding"; power = p; up({ preventDefault: function () {} }); }, ideal: function () { return idealPower(); }, setAngle: function (d) { userDeg = d; setAngle(d); return ANGLE * 180 / Math.PI; }, angle: function () { return ANGLE * 180 / Math.PI; }, angleRange: function () { return [minDeg, maxDeg, defDeg]; }, wobble: function () { return wob.y; }, net: function () { return net; }, holdTest: function () { return state; }, state: function () { return [state, ball.x, ball.y, W, H, vMin, vMax, ANGLE]; } };
+  window.__hoops = { get made() { return totalMade; }, get roundMade() { return made; }, get shots() { return shots; }, get best() { return best; }, get mode() { return state; }, place: function (b, h) { ballStart = b; hoopN = h; resetBall(); }, debugBall: function (x, y, vx, vy) { decidedAt = 0; rimTouch = 0; ball.x = x; ball.y = y; ball.vx = vx; ball.vy = vy; state = "flying"; flightTime = 0; scored = false; }, geo: function () { return geo(); }, newHoop: function () { newHoop(); resetBall(); }, stepOnce: function () { return step(1 / 600); }, spot: function () { return { b: ballStart, h: hoopN }; }, sim: function (p) { this.shoot(p); var n = 0; while (state === "flying" && n < 20000) { n++; if (step(1 / 600)) break; } return [scored, n / 600]; }, shoot: function (p) { if (state === "done") newRound(); state = "holding"; power = p; up({ preventDefault: function () {} }); }, ideal: function () { return idealPower(); }, windowHits: function () { return trialHits(ANGLE * 180 / Math.PI); }, angle: function () { return ANGLE * 180 / Math.PI; }, angleRange: function () { return [minDeg, maxDeg, defDeg]; }, wobble: function () { return wob.y; }, net: function () { return net; }, holdTest: function () { return state; }, state: function () { return [state, ball.x, ball.y, W, H, vMin, vMax, ANGLE]; } };
 
   function colors() {
     var cs = getComputedStyle(document.documentElement);
@@ -56,17 +56,53 @@
   }
 
   function resetBall() {
+    for (var tries = 0; tries < 20; tries++) { if (placeBall()) return; newHoop(); }
+  }
+
+  function placeBall() {
     ball.x = ballStart.nx * W; ball.y = ballStart.ny * H - ball.r;
     ball.vx = 0; ball.vy = 0;
     var gm = geo();
     var dx = (gm.rimL + gm.rimR) / 2 - ball.x, dy = ball.y - gm.rimY;
     /* lowest angle that still comes down into the rim, highest fixed at 70 */
     minDeg = Math.max(35, Math.atan2(2.3 * dy, dx) * 180 / Math.PI + 2);
-    maxDeg = Math.max(minDeg, 70);
+    if (minDeg > 68) return false;
+    maxDeg = 70;
     defDeg = clampDeg(Math.atan2(3 * dy + 60 * S, dx) * 180 / Math.PI);
     spread = 0.32 + Math.random() * 0.12;
     center = 0.45 + Math.random() * 0.25;
-    setAngle(userDeg == null ? defDeg : userDeg);
+    return pickAngle();
+  }
+
+  /* run a shot offline without touching the score, the ball, or the screen */
+  function trialHits(deg) {
+    setAngle(deg);
+    var save = { x: ball.x, y: ball.y }, st = state, hits = 0, ip = idealPower();
+    trial = true;
+    for (var k = -8; k <= 8; k++) {
+      var v = vMin + (vMax - vMin) * (ip + k * 0.01);
+      ball.x = save.x; ball.y = save.y;
+      ball.vx = v * Math.cos(ANGLE); ball.vy = -v * Math.sin(ANGLE);
+      flightTime = 0; scored = false; rimTouch = 0; decidedAt = 0;
+      for (var n = 0; n < 2400; n++) if (step(1 / 400)) break;
+      if (scored) hits++;
+    }
+    trial = false;
+    ball.x = save.x; ball.y = save.y; ball.vx = 0; ball.vy = 0; state = st;
+    flightTime = 0; scored = false; rimTouch = 0; decidedAt = 0;
+    return hits;
+  }
+
+  /* random angle each shot; repick when the power window is narrow */
+  var MIN_HITS = 6;
+  function pickAngle() {
+    for (var i = 0; i < 12; i++) {
+      var d = minDeg + Math.random() * (maxDeg - minDeg);
+      if (trialHits(d) >= MIN_HITS) { setAngle(d); return true; }
+    }
+    if (trialHits(defDeg) >= MIN_HITS) { setAngle(defDeg); return true; }
+    setAngle(defDeg);
+    return false;
   }
 
   function clampDeg(d) { return Math.min(maxDeg, Math.max(minDeg, d)); }
@@ -117,7 +153,6 @@
     e.preventDefault();
     try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
     state = "holding"; holdStart = performance.now(); power = 0;
-    dragY = e.clientY; dragDeg = ANGLE * 180 / Math.PI;
   }
   function up(e) {
     if (state !== "holding") return;
@@ -127,13 +162,6 @@
     state = "flying"; flightTime = 0; scored = false; rimTouch = 0; decidedAt = 0;
   }
   canvas.addEventListener("pointerdown", down);
-  canvas.addEventListener("pointermove", function (e) {
-    if (state !== "holding") return;
-    e.preventDefault();
-    /* drag up for a higher arc, down for a flatter one */
-    userDeg = clampDeg(dragDeg + (dragY - e.clientY) * 0.25);
-    setAngle(userDeg);
-  });
   canvas.addEventListener("pointerup", up);
   canvas.addEventListener("pointercancel", up);
   canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
@@ -193,7 +221,7 @@
     var hitL = collidePoint(gm.rimL, gm.rimY, 0.5);
     var hitR = collidePoint(gm.rimR, gm.rimY, 0.5);
     if (hitL || hitR) {
-      if (rimTouch === 0) kick(Math.hypot(ball.vx, ball.vy));
+      if (rimTouch === 0 && !trial) kick(Math.hypot(ball.vx, ball.vy));
       rimTouch += dt;
       /* never rest on the rim: a slow ball sitting on a rim point gets nudged off its top */
       if (rimTouch > 0.2 && Math.hypot(ball.vx, ball.vy) < 120 * S) {
@@ -205,12 +233,12 @@
     } else rimTouch = Math.max(0, rimTouch - dt);
     // backboard
     if (ball.y > gm.boardTop - ball.r && ball.y < gm.boardBot + ball.r && ball.x + ball.r > gm.boardX && ball.x < gm.boardX + 4 * S) {
-      if (ball.vx > 0) { kick(Math.abs(ball.vx) * 0.6); ball.x = gm.boardX - ball.r; ball.vx *= -0.55; ball.vy *= 0.92; }
+      if (ball.vx > 0) { if (!trial) kick(Math.abs(ball.vx) * 0.6); ball.x = gm.boardX - ball.r; ball.vx *= -0.55; ball.vy *= 0.92; }
     }
     // score: center passes down through rim plane between rims
     if (!scored && prevY < gm.rimY && ball.y >= gm.rimY && ball.vy > 0 && ball.x > gm.rimL && ball.x < gm.rimR) {
-      scored = true; made++; totalMade++;
-      updateBoard(); say("Score");
+      scored = true;
+      if (!trial) { made++; totalMade++; updateBoard(); say("Score"); }
     }
     // floor
     if (ball.y + ball.r > gm.floor) {
@@ -220,6 +248,7 @@
     }
     if (ball.x < ball.r) { ball.x = ball.r; ball.vx = Math.abs(ball.vx) * 0.6; }
     if (ball.x > W + 60 * S || flightTime > 3.2 || (decidedAt && flightTime - decidedAt > 0.8) || (Math.abs(ball.vy) < 30 && ball.y + ball.r >= gm.floor - 1 && flightTime > 0.6)) {
+      if (trial) return true;
       if (!scored) say("Miss");
       shots++;
       if (shots >= ROUND) {
@@ -284,7 +313,7 @@
     ctx.fillStyle = c.muted;
     ctx.font = Math.round(12 * S) + "px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
     ctx.textAlign = "left";
-    if (state === "ready" && shots === 0 && totalMade === 0) ctx.fillText("hold to shoot, drag up or down to aim", mx, my - 8 * S);
+    if (state === "ready" && shots === 0 && totalMade === 0) ctx.fillText("hold to shoot", mx, my - 8 * S);
     if (state === "done") { ctx.textAlign = "center"; ctx.fillText("tap for next round", W / 2, 66 * S); }
     if (now < msgUntil) {
       ctx.fillStyle = c.fg; ctx.textAlign = "center";
@@ -315,6 +344,6 @@
   }
   window.addEventListener("resize", resize);
   if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
-  resize(); updateBoard();
+  resize(); newHoop(); resetBall(); updateBoard();
   requestAnimationFrame(frame);
 })();
