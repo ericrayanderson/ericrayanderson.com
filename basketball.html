@@ -30,16 +30,15 @@
         <h1>Basketball</h1>
         <p class="lede">Press and hold to set power. Release to shoot.</p>
       </header>
-      <p class="support play-note">The aim is fixed, so power is the whole shot. The hoop moves after each make.</p>
+      <p class="support play-note">Ten shots a round. The aim is fixed, so power is the whole shot. The distance changes after every shot.</p>
 
       <div class="stage" id="hoop-stage">
         <canvas id="hoop-canvas" aria-label="Basketball court. Press and hold anywhere to set power, release to shoot."></canvas>
       </div>
       <p class="scoreboard">
+        <span>Shot <strong id="hoop-shot">1</strong> of 10</span>
         <span>Made <strong id="hoop-made">0</strong></span>
-        <span>Shots <strong id="hoop-shots">0</strong></span>
-        <span>Streak <strong id="hoop-streak">0</strong></span>
-        <span>Best streak <strong id="hoop-best">0</strong></span>
+        <span>Best round <strong id="hoop-best">0</strong></span>
       </p>
       <p id="hoop-live" class="visually-hidden" aria-live="polite"></p>
     </main>
