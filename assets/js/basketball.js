@@ -4,21 +4,20 @@
   if (!canvas || !canvas.getContext || !stage) return;
   var ctx = canvas.getContext("2d");
   var madeEl = document.getElementById("hoop-made");
-  var shotsEl = document.getElementById("hoop-shots");
-  var streakEl = document.getElementById("hoop-streak");
+  var shotEl = document.getElementById("hoop-shot");
   var bestEl = document.getElementById("hoop-best");
   var live = document.getElementById("hoop-live");
 
   var W = 0, H = 0, S = 1;
   var ANGLE = 58 * Math.PI / 180;
-  var made = 0, shots = 0, streak = 0, best = 0;
+  var decidedAt = 0, made = 0, shots = 0, best = 0, totalMade = 0, ROUND = 10, roundEndAt = 0, rimTouch = 0;
   var hoopN = { x: 0.74, y: 0.36 };
   var ballStart = { nx: 0.2, ny: 0.84 };
   var ball = { x: 0, y: 0, vx: 0, vy: 0, r: 10 };
-  var state = "ready"; // ready, holding, flying
+  var state = "ready"; // ready, holding, flying, done
   var holdStart = 0, power = 0, vMin = 0, vMax = 0;
   var flightTime = 0, scored = false, lastMsg = "", msgUntil = 0;
-  window.__hoops = { get made() { return made; }, get shots() { return shots; }, ideal: function () { return idealPower(); }, state: function () { return [state, ball.x, ball.y, W, H, vMin, vMax, ANGLE]; } };
+  window.__hoops = { get made() { return totalMade; }, get roundMade() { return made; }, get shots() { return shots; }, get best() { return best; }, get mode() { return state; }, place: function (b, h) { ballStart = b; hoopN = h; resetBall(); }, debugBall: function (x, y, vx, vy) { decidedAt = 0; rimTouch = 0; ball.x = x; ball.y = y; ball.vx = vx; ball.vy = vy; state = "flying"; flightTime = 0; scored = false; }, geo: function () { return geo(); }, newHoop: function () { newHoop(); resetBall(); }, stepOnce: function () { return step(1 / 600); }, spot: function () { return { b: ballStart, h: hoopN }; }, sim: function (p) { this.shoot(p); var n = 0; while (state === "flying" && n < 20000) { n++; if (step(1 / 600)) break; } return [scored, n / 600]; }, shoot: function (p) { if (state === "done") newRound(); state = "holding"; power = p; up({ preventDefault: function () {} }); }, ideal: function () { return idealPower(); }, state: function () { return [state, ball.x, ball.y, W, H, vMin, vMax, ANGLE]; } };
 
   function colors() {
     var cs = getComputedStyle(document.documentElement);
@@ -30,7 +29,7 @@
   function geo() {
     var rimW = 46 * S;
     var x = hoopN.x * W, y = hoopN.y * H;
-    return { rimL: x - rimW / 2, rimR: x + rimW / 2, rimY: y, boardX: x + rimW / 2 + 6 * S,
+    return { rimL: x - rimW / 2, rimR: x + rimW / 2, rimY: y, boardX: x + rimW / 2 + 3 * S,
       boardTop: y - 62 * S, boardBot: y + 14 * S, floor: H - 18 * S, g: 1300 * S, pin: 3 * S };
   }
 
@@ -61,32 +60,46 @@
     var dx = (gm.rimL + gm.rimR) / 2 - ball.x, dy = ball.y - gm.rimY;
     ANGLE = Math.atan2(3 * dy + 60 * S, dx);
     ANGLE = Math.min(80 * Math.PI / 180, Math.max(45 * Math.PI / 180, ANGLE));
-    var ideal = speedFor((gm.rimL + gm.rimR) / 2, gm.rimY - 2 * S);
+    var ideal = speedFor(aimX(gm), gm.rimY - 2 * S);
     var spread = 0.32 + Math.random() * 0.12;
     var center = 0.45 + Math.random() * 0.25;
     vMin = ideal * (1 - spread * center);
     vMax = vMin + ideal * spread;
   }
 
+  function aimX(gm) { return (gm.rimL + gm.rimR) / 2 + (gm.rimR - gm.rimL) * 0.12; }
+
   function idealPower() {
     var gm = geo();
-    var ideal = speedFor((gm.rimL + gm.rimR) / 2, gm.rimY - 2 * S);
+    var ideal = speedFor(aimX(gm), gm.rimY - 2 * S);
     return (ideal - vMin) / (vMax - vMin);
   }
 
   function newHoop() {
-    hoopN = { x: 0.6 + Math.random() * 0.22, y: 0.26 + Math.random() * 0.2 };
-    ballStart = { nx: 0.12 + Math.random() * 0.14, ny: 0.84 };
+    /* random distance each shot; the rise is tied to the gap so no shot is too steep to make */
+    var hx = 0.7 + Math.random() * 0.12;
+    var bx = 0.13 + Math.random() * 0.33;
+    var dx = (hx - bx) * W;
+    var rise = dx * (0.55 + Math.random() * 0.45);
+    rise = Math.max(120 * S, Math.min(rise, (0.84 - 0.24) * H));
+    hoopN = { x: hx, y: 0.84 - rise / H };
+    ballStart = { nx: bx, ny: 0.84 };
   }
 
+
   function updateBoard() {
-    madeEl.textContent = made; shotsEl.textContent = shots;
-    streakEl.textContent = streak; bestEl.textContent = best;
+    madeEl.textContent = made; shotEl.textContent = Math.min(shots + 1, ROUND);
+    bestEl.textContent = best;
   }
 
   function say(t) { lastMsg = t; msgUntil = performance.now() + 1100; if (live) live.textContent = t; }
 
+  function newRound() {
+    made = 0; shots = 0; state = "ready"; newHoop(); resetBall(); updateBoard();
+  }
+
   function down(e) {
+    if (state === "done") { e.preventDefault(); newRound(); return; }
     if (state !== "ready") return;
     e.preventDefault();
     try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
@@ -97,8 +110,7 @@
     e.preventDefault();
     var v = vMin + (vMax - vMin) * power;
     ball.vx = v * Math.cos(ANGLE); ball.vy = -v * Math.sin(ANGLE);
-    state = "flying"; flightTime = 0; scored = false; shots++;
-    updateBoard();
+    state = "flying"; flightTime = 0; scored = false; rimTouch = 0; decidedAt = 0;
   }
   canvas.addEventListener("pointerdown", down);
   canvas.addEventListener("pointerup", up);
@@ -108,12 +120,17 @@
   function collidePoint(px, py, rest) {
     var dx = ball.x - px, dy = ball.y - py;
     var d = Math.hypot(dx, dy), min = ball.r + geo().pin;
-    if (d < min && d > 0) {
-      var nx = dx / d, ny = dy / d;
-      ball.x = px + nx * min; ball.y = py + ny * min;
-      var vn = ball.vx * nx + ball.vy * ny;
-      if (vn < 0) { ball.vx -= (1 + rest) * vn * nx; ball.vy -= (1 + rest) * vn * ny; ball.vx *= 0.92; ball.vy *= 0.92; }
+    if (d >= min) return false;
+    var nx, ny;
+    if (d < 1e-6) { nx = 0; ny = -1; } else { nx = dx / d; ny = dy / d; }
+    ball.x = px + nx * min; ball.y = py + ny * min;
+    var vn = ball.vx * nx + ball.vy * ny;
+    if (vn < 0) {
+      var tx = -ny, ty = nx, vt = ball.vx * tx + ball.vy * ty;
+      vn = -vn * rest; vt *= 0.9;
+      ball.vx = vn * nx + vt * tx; ball.vy = vn * ny + vt * ty;
     }
+    return true;
   }
 
   function step(dt) {
@@ -122,16 +139,27 @@
     ball.vy += gm.g * dt;
     ball.x += ball.vx * dt; ball.y += ball.vy * dt;
     flightTime += dt;
-    collidePoint(gm.rimL, gm.rimY, 0.55);
-    collidePoint(gm.rimR, gm.rimY, 0.55);
+    if (!decidedAt && ball.y - ball.r > gm.rimY + 30 * S && ball.vy > 0) decidedAt = flightTime;
+    var hitL = collidePoint(gm.rimL, gm.rimY, 0.5);
+    var hitR = collidePoint(gm.rimR, gm.rimY, 0.5);
+    if (hitL || hitR) {
+      rimTouch += dt;
+      /* never rest on the rim: a slow ball sitting on a rim point gets nudged off its top */
+      if (rimTouch > 0.2 && Math.hypot(ball.vx, ball.vy) < 120 * S) {
+        var px = hitL ? gm.rimL : gm.rimR;
+        var side = ball.x >= px ? 1 : -1;
+        if (Math.abs(ball.x - px) < 0.5 || !hitL) side = hitL ? side : -1;
+        ball.vx += side * 40 * S;
+      }
+    } else rimTouch = Math.max(0, rimTouch - dt);
     // backboard
     if (ball.y > gm.boardTop - ball.r && ball.y < gm.boardBot + ball.r && ball.x + ball.r > gm.boardX && ball.x < gm.boardX + 4 * S) {
-      if (ball.vx > 0) { ball.x = gm.boardX - ball.r; ball.vx *= -0.6; }
+      if (ball.vx > 0) { ball.x = gm.boardX - ball.r; ball.vx *= -0.55; ball.vy *= 0.92; }
     }
     // score: center passes down through rim plane between rims
     if (!scored && prevY < gm.rimY && ball.y >= gm.rimY && ball.vy > 0 && ball.x > gm.rimL && ball.x < gm.rimR) {
-      scored = true; made++; streak++; if (streak > best) best = streak;
-      updateBoard(); say(streak > 1 ? "Streak " + streak : "Score");
+      scored = true; made++; totalMade++;
+      updateBoard(); say("Score");
     }
     // floor
     if (ball.y + ball.r > gm.floor) {
@@ -140,10 +168,18 @@
       ball.vx *= 0.85;
     }
     if (ball.x < ball.r) { ball.x = ball.r; ball.vx = Math.abs(ball.vx) * 0.6; }
-    if (ball.x > W + 60 * S || flightTime > 3.2 || (Math.abs(ball.vy) < 30 && ball.y + ball.r >= gm.floor - 1 && flightTime > 0.6)) {
-      if (!scored) { streak = 0; updateBoard(); say("Miss"); }
-      else newHoop();
-      state = "ready"; resetBall();
+    if (ball.x > W + 60 * S || flightTime > 3.2 || (decidedAt && flightTime - decidedAt > 0.8) || (Math.abs(ball.vy) < 30 && ball.y + ball.r >= gm.floor - 1 && flightTime > 0.6)) {
+      if (!scored) say("Miss");
+      shots++;
+      if (shots >= ROUND) {
+        if (made > best) best = made;
+        state = "done"; roundEndAt = performance.now();
+        say(made + " of " + ROUND); msgUntil = roundEndAt + 2200;
+        updateBoard(); shotEl.textContent = ROUND;
+        return true;
+      }
+      state = "ready"; newHoop(); resetBall(); updateBoard();
+      return true;
     }
   }
 
@@ -152,10 +188,13 @@
     ctx.fillStyle = c.bg; ctx.fillRect(0, 0, W, H);
     ctx.strokeStyle = c.line; ctx.lineWidth = 2 * S;
     ctx.beginPath(); ctx.moveTo(0, gm.floor); ctx.lineTo(W, gm.floor); ctx.stroke();
-    // backboard and pole
+    // backboard on the wall
     ctx.fillStyle = c.muted;
     ctx.fillRect(gm.boardX, gm.boardTop, 4 * S, gm.boardBot - gm.boardTop);
-    ctx.fillRect(gm.boardX + 4 * S, gm.boardBot - 8 * S, 3 * S, gm.floor - gm.boardBot + 8 * S);
+    /* mounted on the back wall: a short bracket to the right edge, no pole */
+    ctx.fillRect(gm.boardX + 4 * S, gm.boardTop + 20 * S, W - gm.boardX - 4 * S, 3 * S);
+    ctx.fillRect(gm.boardX + 4 * S, gm.boardBot - 16 * S, W - gm.boardX - 4 * S, 3 * S);
+    ctx.fillRect(W - 3 * S, 0, 3 * S, gm.floor);
     // net
     ctx.strokeStyle = c.muted; ctx.lineWidth = 1;
     ctx.beginPath();
@@ -190,7 +229,8 @@
     ctx.fillStyle = c.muted;
     ctx.font = Math.round(12 * S) + "px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
     ctx.textAlign = "left";
-    if (state === "ready" && shots === 0) ctx.fillText("hold to shoot", mx, my - 8 * S);
+    if (state === "ready" && shots === 0 && totalMade === 0) ctx.fillText("hold to shoot", mx, my - 8 * S);
+    if (state === "done") { ctx.textAlign = "center"; ctx.fillText("tap for next round", W / 2, 66 * S); }
     if (now < msgUntil) {
       ctx.fillStyle = c.fg; ctx.textAlign = "center";
       ctx.font = Math.round(18 * S) + "px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
@@ -205,7 +245,12 @@
       var t = (now - holdStart) / 1000;
       power = (1 - Math.cos(t * Math.PI / 1.1)) / 2; // full sweep in 1.1s, then back
     }
-    if (state === "flying") { var n = 4; for (var i = 0; i < n; i++) step(dt / n); }
+    if (state === "flying") {
+      var sp = Math.hypot(ball.vx, ball.vy) * dt;
+      var n = Math.min(64, Math.max(4, Math.ceil(sp / (1.5 * S))));
+      for (var i = 0; i < n; i++) { if (step(dt / n)) break; }
+    }
+    if (state === "done" && now - roundEndAt > 2200) newRound();
     draw(now);
     requestAnimationFrame(frame);
   }
