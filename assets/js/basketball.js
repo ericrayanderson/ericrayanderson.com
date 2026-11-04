@@ -9,7 +9,9 @@
   var live = document.getElementById("hoop-live");
 
   var W = 0, H = 0, S = 1;
-  var ANGLE = 58 * Math.PI / 180;
+  var ANGLE = 58 * Math.PI / 180, minDeg = 35, maxDeg = 70, defDeg = 55, userDeg = null, spread = 0.38, center = 0.55, dragY = 0, dragDeg = 55;
+  var wob = { y: 0, v: 0 };
+  var net = [];
   var decidedAt = 0, made = 0, shots = 0, best = 0, totalMade = 0, ROUND = 10, roundEndAt = 0, rimTouch = 0;
   var hoopN = { x: 0.74, y: 0.36 };
   var ballStart = { nx: 0.2, ny: 0.84 };
@@ -17,7 +19,7 @@
   var state = "ready"; // ready, holding, flying, done
   var holdStart = 0, power = 0, vMin = 0, vMax = 0;
   var flightTime = 0, scored = false, lastMsg = "", msgUntil = 0;
-  window.__hoops = { get made() { return totalMade; }, get roundMade() { return made; }, get shots() { return shots; }, get best() { return best; }, get mode() { return state; }, place: function (b, h) { ballStart = b; hoopN = h; resetBall(); }, debugBall: function (x, y, vx, vy) { decidedAt = 0; rimTouch = 0; ball.x = x; ball.y = y; ball.vx = vx; ball.vy = vy; state = "flying"; flightTime = 0; scored = false; }, geo: function () { return geo(); }, newHoop: function () { newHoop(); resetBall(); }, stepOnce: function () { return step(1 / 600); }, spot: function () { return { b: ballStart, h: hoopN }; }, sim: function (p) { this.shoot(p); var n = 0; while (state === "flying" && n < 20000) { n++; if (step(1 / 600)) break; } return [scored, n / 600]; }, shoot: function (p) { if (state === "done") newRound(); state = "holding"; power = p; up({ preventDefault: function () {} }); }, ideal: function () { return idealPower(); }, state: function () { return [state, ball.x, ball.y, W, H, vMin, vMax, ANGLE]; } };
+  window.__hoops = { get made() { return totalMade; }, get roundMade() { return made; }, get shots() { return shots; }, get best() { return best; }, get mode() { return state; }, place: function (b, h) { ballStart = b; hoopN = h; resetBall(); }, debugBall: function (x, y, vx, vy) { decidedAt = 0; rimTouch = 0; ball.x = x; ball.y = y; ball.vx = vx; ball.vy = vy; state = "flying"; flightTime = 0; scored = false; }, geo: function () { return geo(); }, newHoop: function () { newHoop(); resetBall(); }, stepOnce: function () { return step(1 / 600); }, spot: function () { return { b: ballStart, h: hoopN }; }, sim: function (p) { this.shoot(p); var n = 0; while (state === "flying" && n < 20000) { n++; if (step(1 / 600)) break; } return [scored, n / 600]; }, shoot: function (p) { if (state === "done") newRound(); state = "holding"; power = p; up({ preventDefault: function () {} }); }, ideal: function () { return idealPower(); }, setAngle: function (d) { userDeg = d; setAngle(d); return ANGLE * 180 / Math.PI; }, angle: function () { return ANGLE * 180 / Math.PI; }, angleRange: function () { return [minDeg, maxDeg, defDeg]; }, wobble: function () { return wob.y; }, net: function () { return net; }, holdTest: function () { return state; }, state: function () { return [state, ball.x, ball.y, W, H, vMin, vMax, ANGLE]; } };
 
   function colors() {
     var cs = getComputedStyle(document.documentElement);
@@ -58,11 +60,22 @@
     ball.vx = 0; ball.vy = 0;
     var gm = geo();
     var dx = (gm.rimL + gm.rimR) / 2 - ball.x, dy = ball.y - gm.rimY;
-    ANGLE = Math.atan2(3 * dy + 60 * S, dx);
-    ANGLE = Math.min(80 * Math.PI / 180, Math.max(45 * Math.PI / 180, ANGLE));
+    /* lowest angle that still comes down into the rim, highest fixed at 70 */
+    minDeg = Math.max(35, Math.atan2(2.3 * dy, dx) * 180 / Math.PI + 2);
+    maxDeg = Math.max(minDeg, 70);
+    defDeg = clampDeg(Math.atan2(3 * dy + 60 * S, dx) * 180 / Math.PI);
+    spread = 0.32 + Math.random() * 0.12;
+    center = 0.45 + Math.random() * 0.25;
+    setAngle(userDeg == null ? defDeg : userDeg);
+  }
+
+  function clampDeg(d) { return Math.min(maxDeg, Math.max(minDeg, d)); }
+
+  /* the power range follows the angle, so every allowed angle has a power that scores */
+  function setAngle(d) {
+    ANGLE = clampDeg(d) * Math.PI / 180;
+    var gm = geo();
     var ideal = speedFor(aimX(gm), gm.rimY - 2 * S);
-    var spread = 0.32 + Math.random() * 0.12;
-    var center = 0.45 + Math.random() * 0.25;
     vMin = ideal * (1 - spread * center);
     vMax = vMin + ideal * spread;
   }
@@ -80,7 +93,7 @@
     var hx = 0.7 + Math.random() * 0.12;
     var bx = 0.13 + Math.random() * 0.33;
     var dx = (hx - bx) * W;
-    var rise = dx * (0.55 + Math.random() * 0.45);
+    var rise = dx * (0.4 + Math.random() * 0.35);
     rise = Math.max(120 * S, Math.min(rise, (0.84 - 0.24) * H));
     hoopN = { x: hx, y: 0.84 - rise / H };
     ballStart = { nx: bx, ny: 0.84 };
@@ -104,6 +117,7 @@
     e.preventDefault();
     try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
     state = "holding"; holdStart = performance.now(); power = 0;
+    dragY = e.clientY; dragDeg = ANGLE * 180 / Math.PI;
   }
   function up(e) {
     if (state !== "holding") return;
@@ -113,6 +127,13 @@
     state = "flying"; flightTime = 0; scored = false; rimTouch = 0; decidedAt = 0;
   }
   canvas.addEventListener("pointerdown", down);
+  canvas.addEventListener("pointermove", function (e) {
+    if (state !== "holding") return;
+    e.preventDefault();
+    /* drag up for a higher arc, down for a flatter one */
+    userDeg = clampDeg(dragDeg + (dragY - e.clientY) * 0.25);
+    setAngle(userDeg);
+  });
   canvas.addEventListener("pointerup", up);
   canvas.addEventListener("pointercancel", up);
   canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
@@ -133,6 +154,35 @@
     return true;
   }
 
+  function kick(speed) { wob.v += Math.min(speed, 900 * S) * 0.12; }
+
+  function netRest(gm) {
+    var pts = [], rows = 4, cols = 5, depth = 26 * S, inset = 8 * S;
+    for (var r = 0; r <= rows; r++) {
+      var f = r / rows, l = gm.rimL + inset * f, w = (gm.rimR - gm.rimL) - 2 * inset * f;
+      for (var c = 0; c < cols; c++) pts.push({ x: l + w * c / (cols - 1), y: gm.rimY + depth * f, r: r });
+    }
+    return pts;
+  }
+
+  /* visual only: net points follow springs to rest and get pushed by the ball */
+  function updateNet(dt) {
+    var gm = geo(), rest = netRest(gm);
+    if (net.length !== rest.length) net = rest.map(function (p) { return { x: p.x, y: p.y, vx: 0, vy: 0 }; });
+    for (var i = 0; i < net.length; i++) {
+      var p = net[i], q = rest[i];
+      if (q.r === 0) { p.x = q.x; p.y = q.y + wob.y; p.vx = p.vy = 0; continue; }
+      p.vx += ((q.x - p.x) * 260 - p.vx * 9) * dt;
+      p.vy += ((q.y + wob.y - p.y) * 260 - p.vy * 9) * dt;
+      var dx = p.x - ball.x, dy = p.y - ball.y, d = Math.hypot(dx, dy), m = ball.r + 1.5 * S;
+      if (state === "flying" && d < m && d > 0) {
+        p.x = ball.x + dx / d * m; p.y = ball.y + dy / d * m;
+        p.vx += ball.vx * 0.35; p.vy += ball.vy * 0.35;
+      }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+    }
+  }
+
   function step(dt) {
     var gm = geo();
     var prevY = ball.y;
@@ -143,6 +193,7 @@
     var hitL = collidePoint(gm.rimL, gm.rimY, 0.5);
     var hitR = collidePoint(gm.rimR, gm.rimY, 0.5);
     if (hitL || hitR) {
+      if (rimTouch === 0) kick(Math.hypot(ball.vx, ball.vy));
       rimTouch += dt;
       /* never rest on the rim: a slow ball sitting on a rim point gets nudged off its top */
       if (rimTouch > 0.2 && Math.hypot(ball.vx, ball.vy) < 120 * S) {
@@ -154,7 +205,7 @@
     } else rimTouch = Math.max(0, rimTouch - dt);
     // backboard
     if (ball.y > gm.boardTop - ball.r && ball.y < gm.boardBot + ball.r && ball.x + ball.r > gm.boardX && ball.x < gm.boardX + 4 * S) {
-      if (ball.vx > 0) { ball.x = gm.boardX - ball.r; ball.vx *= -0.55; ball.vy *= 0.92; }
+      if (ball.vx > 0) { kick(Math.abs(ball.vx) * 0.6); ball.x = gm.boardX - ball.r; ball.vx *= -0.55; ball.vy *= 0.92; }
     }
     // score: center passes down through rim plane between rims
     if (!scored && prevY < gm.rimY && ball.y >= gm.rimY && ball.vy > 0 && ball.x > gm.rimL && ball.x < gm.rimR) {
@@ -196,27 +247,31 @@
     ctx.fillRect(gm.boardX + 4 * S, gm.boardBot - 16 * S, W - gm.boardX - 4 * S, 3 * S);
     ctx.fillRect(W - 3 * S, 0, 3 * S, gm.floor);
     // net
-    ctx.strokeStyle = c.muted; ctx.lineWidth = 1;
-    ctx.beginPath();
-    var nb = gm.rimY + 26 * S, inset = 8 * S;
-    for (var i = 0; i <= 4; i++) {
-      var tx = gm.rimL + (gm.rimR - gm.rimL) * i / 4;
-      var bx = gm.rimL + inset + (gm.rimR - gm.rimL - 2 * inset) * i / 4;
-      ctx.moveTo(tx, gm.rimY); ctx.lineTo(bx, nb);
+    if (net.length) {
+      ctx.strokeStyle = c.muted; ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (var i = 0; i < 5; i++) for (var r = 0; r < 4; r++) {
+        var p0 = net[r * 5 + i], p1 = net[(r + 1) * 5 + i];
+        ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y);
+        if (i < 4 && r > 0) { var p2 = net[r * 5 + i + 1]; ctx.moveTo(p0.x, p0.y); ctx.lineTo(p2.x, p2.y); }
+      }
+      ctx.stroke();
     }
-    ctx.stroke();
     // ball
     ctx.fillStyle = c.prompt;
     ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
     // rim drawn over ball
     ctx.strokeStyle = c.prompt; ctx.lineWidth = 3 * S;
-    ctx.beginPath(); ctx.moveTo(gm.rimL, gm.rimY); ctx.lineTo(gm.boardX, gm.rimY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gm.rimL, gm.rimY + wob.y); ctx.lineTo(gm.boardX, gm.rimY + wob.y * 0.3); ctx.stroke();
     // aim hint
     if (state !== "flying") {
       ctx.strokeStyle = c.line; ctx.lineWidth = 2 * S; ctx.setLineDash([4 * S, 6 * S]);
       ctx.beginPath(); ctx.moveTo(ball.x, ball.y);
-      ctx.lineTo(ball.x + Math.cos(ANGLE) * 50 * S, ball.y - Math.sin(ANGLE) * 50 * S); ctx.stroke();
+      ctx.lineTo(ball.x + Math.cos(ANGLE) * 70 * S, ball.y - Math.sin(ANGLE) * 70 * S); ctx.stroke();
       ctx.setLineDash([]);
+      ctx.fillStyle = c.muted; ctx.textAlign = "left";
+      ctx.font = Math.round(12 * S) + "px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      ctx.fillText(Math.round(ANGLE * 180 / Math.PI) + "\u00b0", ball.x + Math.cos(ANGLE) * 70 * S + 6 * S, ball.y - Math.sin(ANGLE) * 70 * S);
     }
     // power meter
     var mx = 14 * S, mh = Math.min(180 * S, H * 0.4), my = gm.floor - 14 * S - mh, mw = 12 * S;
@@ -229,7 +284,7 @@
     ctx.fillStyle = c.muted;
     ctx.font = Math.round(12 * S) + "px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
     ctx.textAlign = "left";
-    if (state === "ready" && shots === 0 && totalMade === 0) ctx.fillText("hold to shoot", mx, my - 8 * S);
+    if (state === "ready" && shots === 0 && totalMade === 0) ctx.fillText("hold to shoot, drag up or down to aim", mx, my - 8 * S);
     if (state === "done") { ctx.textAlign = "center"; ctx.fillText("tap for next round", W / 2, 66 * S); }
     if (now < msgUntil) {
       ctx.fillStyle = c.fg; ctx.textAlign = "center";
@@ -251,6 +306,10 @@
       for (var i = 0; i < n; i++) { if (step(dt / n)) break; }
     }
     if (state === "done" && now - roundEndAt > 2200) newRound();
+    /* damped spring, settles in well under half a second */
+    wob.v += (-wob.y * 900 - wob.v * 32) * dt; wob.y += wob.v * dt;
+    if (Math.abs(wob.y) > 4 * S) wob.y = 4 * S * Math.sign(wob.y);
+    updateNet(dt);
     draw(now);
     requestAnimationFrame(frame);
   }
