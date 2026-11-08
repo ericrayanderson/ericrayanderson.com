@@ -3,7 +3,7 @@
 import {
   WebGLRenderer, Scene, PerspectiveCamera, PMREMGenerator, Group, Mesh,
   MeshPhysicalMaterial, MeshStandardMaterial, IcosahedronGeometry, SphereGeometry,
-  TorusGeometry, Color, ACESFilmicToneMapping, SRGBColorSpace, MathUtils, Vector2
+  TorusGeometry, PlaneGeometry, MeshBasicMaterial, CanvasTexture, Color, ACESFilmicToneMapping, SRGBColorSpace, MathUtils, Vector2
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
@@ -22,16 +22,17 @@ if (host && webglOk()) start();
 
 function palette() {
   return darkQuery.matches
-    ? { amber: '#e4c07a', blue: '#9ecbff', ink: '#e6e6e6', ring: '#5a5a5a', exposure: 0.95 }
-    : { amber: '#c98a2e', blue: '#2f6fb3', ink: '#241f1a', ring: '#cfc6b8', exposure: 1.05 };
+    ? { bg: '#1c1c1c', line: '#333333', amber: '#e4b25a', blue: '#6fb0ff', ring: '#6a6a6a', exposure: 1.0, env: 0.55 }
+    : { bg: '#f4f1ea', line: '#e1d9cc', amber: '#d48a1c', blue: '#2a68b0', ring: '#b9ae9e', exposure: 0.9, env: 0.45 };
 }
 
 function start() {
   let renderer;
   try {
-    renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
+    renderer = new WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'low-power' });
   } catch (e) { return; }
-  renderer.setClearColor(0x000000, 0);
+  // Opaque background in the page color. Glass refracts what was drawn behind it,
+  // so a transparent clear made the pebble read as flat white.
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   const canvas = renderer.domElement;
@@ -49,13 +50,36 @@ function start() {
   const rig = new Group();
   scene.add(rig);
 
+  // A faint console grid behind everything gives the glass something to bend.
+  const gridCanvas = document.createElement('canvas');
+  gridCanvas.width = gridCanvas.height = 256;
+  const gridTex = new CanvasTexture(gridCanvas);
+  gridTex.colorSpace = SRGBColorSpace;
+  const backdrop = new Mesh(new PlaneGeometry(16, 10), new MeshBasicMaterial({ map: gridTex }));
+  backdrop.position.z = -3.2;
+  scene.add(backdrop);
+  function paintGrid(p) {
+    const g = gridCanvas.getContext('2d');
+    g.fillStyle = p.bg;
+    g.fillRect(0, 0, 256, 256);
+    g.strokeStyle = p.line;
+    g.lineWidth = 2;
+    for (let i = 0; i <= 256; i += 32) {
+      g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 256); g.stroke();
+      g.beginPath(); g.moveTo(0, i); g.lineTo(256, i); g.stroke();
+    }
+    gridTex.wrapS = gridTex.wrapT = 1000;
+    gridTex.repeat.set(5, 3.2);
+    gridTex.needsUpdate = true;
+  }
+
   // A soft glass pebble, with two small lights of color behind it to bend.
   const glass = new MeshPhysicalMaterial({
-    color: 0xffffff, metalness: 0, roughness: 0.06, transmission: 1,
-    thickness: 1.4, ior: 1.45, clearcoat: 1, clearcoatRoughness: 0.05,
-    attenuationDistance: 3, envMapIntensity: 1.1, dispersion: 0.25
+    color: 0xffffff, metalness: 0, roughness: 0.03, transmission: 1,
+    thickness: 0.9, ior: 1.5, specularIntensity: 0.8, clearcoat: 0.6, clearcoatRoughness: 0.08,
+    envMapIntensity: 0.5, dispersion: 0.12
   });
-  const pebbleGeo = new IcosahedronGeometry(1.25, 24);
+  const pebbleGeo = new IcosahedronGeometry(1.1, 24);
   const pos = pebbleGeo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
@@ -70,8 +94,8 @@ function start() {
   const ringMat = new MeshStandardMaterial({ roughness: 0.5, metalness: 0.2 });
   const a = new Mesh(new SphereGeometry(0.42, 48, 32), amber);
   const b = new Mesh(new SphereGeometry(0.3, 48, 32), blue);
-  a.position.set(-0.75, 0.35, -1.4);
-  b.position.set(0.85, -0.4, -1.1);
+  a.position.set(-0.75, 0.35, -1.6);
+  b.position.set(0.85, -0.4, -1.3);
   const ring = new Mesh(new TorusGeometry(2.05, 0.018, 16, 160), ringMat);
   ring.rotation.x = Math.PI * 0.42;
   scene.add(a, b, ring);
@@ -81,7 +105,10 @@ function start() {
     amber.color = new Color(p.amber);
     blue.color = new Color(p.blue);
     ringMat.color = new Color(p.ring);
-    glass.attenuationColor = new Color(darkQuery.matches ? '#dfe8f2' : '#f4efe6');
+    scene.background = new Color(p.bg);
+    renderer.setClearColor(p.bg, 1);
+    glass.envMapIntensity = p.env;
+    paintGrid(p);
     renderer.toneMappingExposure = p.exposure;
   }
   applyPalette();
@@ -115,8 +142,8 @@ function start() {
     rig.rotation.y = s * 0.18 + tilt.x * 0.45;
     rig.rotation.x = Math.sin(s * 0.4) * 0.08 + tilt.y * 0.3;
     pebble.position.y = Math.sin(s * 0.7) * 0.06;
-    a.position.x = -0.75 + Math.sin(s * 0.5) * 0.12 - tilt.x * 0.25;
-    b.position.x = 0.85 + Math.cos(s * 0.45) * 0.12 - tilt.x * 0.2;
+    a.position.x = -0.75 + Math.sin(s * 0.5) * 0.35 - tilt.x * 0.25;
+    b.position.x = 0.85 + Math.cos(s * 0.45) * 0.35 - tilt.x * 0.2;
     ring.rotation.z = s * 0.05;
     renderer.render(scene, camera);
   }
