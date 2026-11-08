@@ -1,0 +1,33 @@
+/* Home page only: the three.js glass scene above the name. */
+
+.glass-stage {
+  display: none;
+  position: relative;
+  width: 100%;
+  height: clamp(190px, 34vh, 320px);
+  margin: -0.75rem 0 1rem;
+  border-radius: 14px;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.glass-stage.is-ready { display: block; }
+
+.glass-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--line);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.glass-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (min-width: 860px) {
+  .glass-stage { height: clamp(240px, 40vh, 380px); }
+}

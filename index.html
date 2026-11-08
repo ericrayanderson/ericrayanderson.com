@@ -13,6 +13,7 @@
   <meta property="og:locale" content="en_US">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/home.css">
+  <link rel="stylesheet" href="assets/css/home-glass.css?v=1">
   <script>document.documentElement.classList.add("is-console");</script>
 </head>
 <body>
@@ -24,6 +25,7 @@
   <div id="console" class="console" hidden>
     <div id="log" class="log">
       <header class="hello">
+        <div class="glass-stage" id="glass-stage" aria-hidden="true"></div>
         <h1>Eric Anderson</h1>
         <p>Wake Forest, NC</p>
         <div class="chips" id="commands" role="group" aria-label="Commands">
@@ -57,5 +59,6 @@
     </ul>
   </main>
   <script src="assets/js/home.js"></script>
+  <script type="module" src="assets/js/home-glass.js?v=1"></script>
 </body>
 </html>
