@@ -17,7 +17,8 @@
       rows: [
         ["play helicopter", "Fly a cave.", "helicopter.html"],
         ["play putt", "Three holes.", "putt.html"],
-        ["play dirtbike", "A short trail.", "dirtbike.html"]
+        ["play dirtbike", "A short trail.", "dirtbike.html"],
+        ["play basketball", "Ten shots.", "basketball.html"]
       ]
     },
     about: {
